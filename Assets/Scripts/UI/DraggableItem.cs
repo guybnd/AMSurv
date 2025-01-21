@@ -6,51 +6,43 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public Item item; // The item this UI element represents
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
+    private Transform originalParent; // Store the original parent slot
     private InventoryUI inventoryUI;
-    private Transform originalParent;
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
+        inventoryUI = FindObjectOfType<InventoryUI>();
 
         if (canvasGroup == null)
-        {
             Debug.LogError($"CanvasGroup is missing on {gameObject.name}. Please add one.");
-        }
-
-        inventoryUI = FindObjectOfType<InventoryUI>();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         Debug.Log($"Begin drag for item: {item?.ItemName}");
 
-        if (canvasGroup != null)
-        {
-            canvasGroup.blocksRaycasts = false; // Allow drop detection
-        }
+        originalParent = transform.parent; // Store the current parent (slot)
+        transform.SetParent(inventoryUI.transform, true); // Temporarily reparent to inventory UI
 
-        // Detach for dragging
-        originalParent = transform.parent;
-        transform.SetParent(inventoryUI.transform, true);
-        inventoryUI.HideTooltip();
+        canvasGroup.blocksRaycasts = false; // Allow detection of drop areas
+        canvasGroup.alpha = 0.8f; // Make the item semi-transparent during drag
+
+        inventoryUI.HideTooltip(); // Hide tooltip during drag
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        Debug.Log($"Dragging item: {item?.ItemName}");
-        rectTransform.anchoredPosition += eventData.delta / inventoryUI.GetCanvasScale();
+        rectTransform.anchoredPosition += eventData.delta / inventoryUI.GetCanvasScale(); // Move item with drag
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         Debug.Log($"End drag for item: {item?.ItemName}");
 
-        if (canvasGroup != null)
-        {
-            canvasGroup.blocksRaycasts = true; // Re-enable raycast blocking
-        }
+        canvasGroup.blocksRaycasts = true; // Re-enable raycast blocking
+        canvasGroup.alpha = 1f; // Reset transparency
 
         // Check if dropped on a valid slot
         SlotDropHandler dropHandler = eventData.pointerEnter?.GetComponent<SlotDropHandler>();
@@ -62,10 +54,9 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         else
         {
             Debug.LogWarning("Dropped outside valid slots.");
+            // Return item to original slot if no valid drop occurred
+            transform.SetParent(originalParent);
+            rectTransform.anchoredPosition = Vector2.zero;
         }
-
-        // Return to original parent if no valid drop occurred
-        transform.SetParent(originalParent);
-        rectTransform.anchoredPosition = Vector2.zero;
     }
 }

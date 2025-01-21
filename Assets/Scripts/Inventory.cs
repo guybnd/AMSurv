@@ -173,21 +173,22 @@ public class Inventory : MonoBehaviour
         return null;
     }
 
-    public void SwapItems(int indexA, int indexB)
+public void SwapItems(int indexA, int indexB)
 {
-    if (indexA >= 0 && indexA < inventoryBag.Count && indexB >= 0 && indexB < inventoryBag.Count)
-    {
-        Item temp = inventoryBag[indexA];
-        inventoryBag[indexA] = inventoryBag[indexB];
-        inventoryBag[indexB] = temp;
+    List<Item> bagContents = GetBagContents();
 
-        Debug.Log($"Swapped items at index {indexA} and {indexB}.");
-        OnInventoryChanged?.Invoke(); // Trigger UI update
-    }
-    else
+    if (indexA < 0 || indexA >= bagContents.Count || indexB < 0 || indexB >= bagContents.Count)
     {
-        Debug.LogError("Invalid indices for SwapItems.");
+        Debug.LogError($"Invalid indices for SwapItems: indexA={indexA}, indexB={indexB}, Bag Count={bagContents.Count}");
+        return;
     }
+
+    Item temp = bagContents[indexA];
+    bagContents[indexA] = bagContents[indexB];
+    bagContents[indexB] = temp;
+
+    Debug.Log($"Swapped items at indices {indexA} and {indexB}");
+    OnInventoryChanged?.Invoke(); // Notify UI of the change
 }
 
     private bool IsItemValidForSlot(Item item, EquipmentSlot slot)

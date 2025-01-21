@@ -1085,7 +1085,45 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      projectiles x3_0: -2307428280580170237
+      projectiles x3_1: -2806231358509857929
+      projectiles x3_10: 4000944876066952168
+      projectiles x3_11: -2275009613000750582
+      projectiles x3_12: 967274228791509910
+      projectiles x3_13: 737478360974625150
+      projectiles x3_14: 6553162171494660822
+      projectiles x3_15: 457146666741195389
+      projectiles x3_16: 5596214277822173359
+      projectiles x3_17: -8050813490095487380
+      projectiles x3_18: -688274450443121424
+      projectiles x3_19: -6586856644434956990
+      projectiles x3_2: -740452404334359286
+      projectiles x3_20: 5542607645614734049
+      projectiles x3_21: -7208215268769786738
+      projectiles x3_22: 5825107700976793936
+      projectiles x3_23: -3745502505802961876
+      projectiles x3_24: 505635465533198327
+      projectiles x3_25: -8545451082115319517
+      projectiles x3_26: 7788068890964196734
+      projectiles x3_27: 5080770498981851081
+      projectiles x3_28: 8048181411401549814
+      projectiles x3_29: -8101139716078293640
+      projectiles x3_3: -9019726867038172323
+      projectiles x3_30: -378059909881668170
+      projectiles x3_31: 92306452192853459
+      projectiles x3_32: -6701576630836254492
+      projectiles x3_33: 9010554741590268480
+      projectiles x3_34: -2814100956613851593
+      projectiles x3_35: 551471373664239810
+      projectiles x3_36: 718635593445381512
+      projectiles x3_37: -1610841078686347437
+      projectiles x3_4: 2453590692778190123
+      projectiles x3_5: 6785743201546341308
+      projectiles x3_6: 6643600354278606586
+      projectiles x3_7: -6582118079690283320
+      projectiles x3_8: -6515641813719846553
+      projectiles x3_9: 7677449746895115196
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

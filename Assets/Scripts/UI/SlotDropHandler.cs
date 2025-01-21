@@ -7,10 +7,11 @@ public class SlotDropHandler : MonoBehaviour, IDropHandler
 
     public void OnDrop(PointerEventData eventData)
     {
-        DraggableItem draggedItem = eventData.pointerDrag.GetComponent<DraggableItem>();
+        DraggableItem draggedItem = eventData.pointerDrag?.GetComponent<DraggableItem>();
         if (draggedItem != null)
         {
-            inventoryUI.HandleItemDrop(draggedItem.item, this);
+            Debug.Log($"Item {draggedItem.item.ItemName} dropped on {name}");
+            inventoryUI.HandleItemDrop(draggedItem.item, this); // Delegate drop handling to InventoryUI
         }
     }
 }

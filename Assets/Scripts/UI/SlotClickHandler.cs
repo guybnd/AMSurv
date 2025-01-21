@@ -8,7 +8,7 @@ public class SlotClickHandler : MonoBehaviour, IPointerClickHandler
 
     private void Start()
     {
-        Debug.Log($"SlotClickHandler attached to {gameObject.name}");
+        // Debug.Log($"SlotClickHandler attached to {gameObject.name}");
     }
 
     public void OnPointerClick(PointerEventData eventData)

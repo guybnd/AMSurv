@@ -122,13 +122,47 @@ public class InventoryUI : MonoBehaviour
 
 public void HandleItemDrop(Item draggedItem, SlotDropHandler targetSlot)
 {
+    if (draggedItem == null || targetSlot == null)
+    {
+        Debug.LogError("Invalid drag-and-drop operation: draggedItem or targetSlot is null.");
+        return;
+    }
+
     int targetIndex = bagSlotButtons.IndexOf(targetSlot.gameObject);
     int draggedIndex = inventory.GetItemIndex(draggedItem);
+
+    Debug.Log($"Dragged Item: {draggedItem?.ItemName}, Dragged Index: {draggedIndex}, Target Index: {targetIndex}");
 
     if (targetIndex >= 0 && draggedIndex >= 0)
     {
         inventory.SwapItems(draggedIndex, targetIndex);
-        RefreshBagSlots();
+        RefreshBagSlots(); // Update the UI after the swap
+    }
+    else
+    {
+        Debug.LogError($"Invalid indices for SwapItems. Dragged Index: {draggedIndex}, Target Index: {targetIndex}");
+    }
+}
+
+
+public void HighlightSlot(SlotDropHandler slot, bool highlight)
+{
+    Image slotImage = slot.GetComponent<Image>();
+    if (slotImage != null)
+    {
+        slotImage.color = highlight ? new Color(0.8f, 0.8f, 1f, 1f) : Color.white; // Highlight or reset
+    }
+}
+
+public void HighlightValidSlots(Item item, bool highlight)
+{
+    foreach (var button in bagSlotButtons)
+    {
+        SlotDropHandler slot = button.GetComponent<SlotDropHandler>();
+        if (slot != null)
+        {
+            HighlightSlot(slot, highlight); // Add logic to validate specific slots if needed
+        }
     }
 }
 
@@ -187,82 +221,46 @@ public void HandleItemDrop(Item draggedItem, SlotDropHandler targetSlot)
     // Refresh the bag slots with current inventory contents
 public void RefreshBagSlots()
 {
-    foreach (var button in bagSlotButtons)
-    {
-        Destroy(button);
-    }
-    bagSlotButtons.Clear();
-
     List<Item> bagContents = inventory.GetBagContents();
 
-    for (int i = 0; i < totalBagSlots; i++)
+    for (int i = 0; i < bagSlotButtons.Count; i++)
     {
-        GameObject slot = Instantiate(bagSlotPrefab, bagSlotsParent.transform);
-        bagSlotButtons.Add(slot);
-
-        // Find the ItemImage child
+        GameObject slot = bagSlotButtons[i];
         Transform itemImageTransform = slot.transform.Find("ItemImage");
-        if (itemImageTransform == null)
-        {
-            Debug.LogError($"ItemImage child not found in bagSlotPrefab for slot {i}");
-            continue;
-        }
 
-        Image itemImage = itemImageTransform.GetComponent<Image>();
-        DraggableItem draggableItem = itemImageTransform.GetComponent<DraggableItem>();
-
-        if (itemImage == null || draggableItem == null)
-        {
-            Debug.LogError($"Missing components on ItemImage in slot {i}: Ensure it has Image and DraggableItem.");
-            continue;
-        }
-
-        // Find and configure the handlers on the root slot
-        SlotDropHandler dropHandler = slot.GetComponent<SlotDropHandler>();
-        SlotClickHandler clickHandler = slot.GetComponent<SlotClickHandler>();
-
-        if (dropHandler == null || clickHandler == null)
-        {
-            Debug.LogError($"Bag slot {i} is missing required components: SlotDropHandler or SlotClickHandler.");
-            continue;
-        }
-
-        // Assign inventory UI and draggable item to handlers
-        dropHandler.inventoryUI = this;
-        clickHandler.inventoryUI = this;
-        clickHandler.draggableItem = draggableItem;
-
-        // Set up the slot visuals and item data
         if (i < bagContents.Count)
         {
+            // Assign item data to the slot
             Item item = bagContents[i];
+            Image itemImage = itemImageTransform.GetComponent<Image>();
             itemImage.sprite = item.ItemImage;
             itemImage.enabled = true;
 
-            draggableItem.item = item;
-
             TextMeshProUGUI stackText = slot.GetComponentInChildren<TextMeshProUGUI>();
-            if (stackText != null)
+            stackText.text = item.IsStackable ? $"x{item.CurrentStack}" : "";
+
+            DraggableItem draggableItem = itemImageTransform.GetComponent<DraggableItem>();
+            if (draggableItem != null)
             {
-                stackText.text = item.IsStackable ? $"x{item.CurrentStack}" : "";
+                draggableItem.item = i < bagContents.Count ? bagContents[i] : null;
             }
         }
         else
         {
             // Empty slot
+            Image itemImage = itemImageTransform.GetComponent<Image>();
             itemImage.sprite = null;
             itemImage.enabled = false;
 
-            draggableItem.item = null;
-
             TextMeshProUGUI stackText = slot.GetComponentInChildren<TextMeshProUGUI>();
-            if (stackText != null)
-            {
-                stackText.text = "";
-            }
+            stackText.text = "";
+
+            DraggableItem draggableItem = itemImageTransform.GetComponent<DraggableItem>();
+            draggableItem.item = null; // Clear the item from the draggable component
         }
     }
 }
+
 
 
     private void OnBagSlotClicked(Item item)
