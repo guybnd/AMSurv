@@ -13,7 +13,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
-        inventoryUI = FindObjectOfType<InventoryUI>();
+        inventoryUI = Object.FindAnyObjectByType<InventoryUI>();
 
         if (canvasGroup == null)
             Debug.LogError($"CanvasGroup is missing on {gameObject.name}. Please add one.");

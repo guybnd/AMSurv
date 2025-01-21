@@ -2,20 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum EquipmentSlot
-{
-    Weapon,
-    Offhand,
-    Helmet,
-    Gloves,
-    Boots,
-    Chest,
-    RingLeft,
-    RingRight,
-    Amulet,
-    Belt
-}
-
 public class Inventory : MonoBehaviour
 {
     private CharacterStats characterStats;
@@ -23,7 +9,8 @@ public class Inventory : MonoBehaviour
     private Dictionary<EquipmentSlot, Item> equippedItems = new Dictionary<EquipmentSlot, Item>();
     private List<Item> inventoryBag = new List<Item>();
 
-    // Events
+    public int TotalSlots = 60;
+
     public event Action OnInventoryChanged;
     public event Action OnEquipmentChanged;
 
@@ -39,117 +26,52 @@ public class Inventory : MonoBehaviour
         {
             equippedItems[slot] = null;
         }
-    }
 
-    public void EquipItem(Item item, EquipmentSlot slot)
-    {
-        if (item == null)
+        // Initialize inventoryBag with null values for empty slots
+        for (int i = 0; i < TotalSlots; i++)
         {
-            Debug.LogError("Cannot equip a null item!");
-            return;
+            inventoryBag.Add(null);
         }
-
-        if (!IsItemValidForSlot(item, slot))
-        {
-            Debug.LogError($"Cannot equip {item.ItemName}: Item type {item.Type} does not match slot {slot}.");
-            return;
-        }
-
-        if (equippedItems[slot] != null)
-        {
-            UnequipItem(slot);
-        }
-
-        equippedItems[slot] = item;
-        item.ApplyTo(characterStats);
-
-        Debug.Log($"Equipped {item.ItemName} to {slot}");
-        OnEquipmentChanged?.Invoke();
-    }
-
-
-    public bool TryEquipItem(Item item)
-{
-    foreach (EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentSlot)))
-    {
-        if (IsItemValidForSlot(item, slot))
-        {
-            EquipItem(item, slot); // Equip the item
-            RemoveFromBag(item); // Remove it from the bag
-            return true; // Successful equip
-        }
-    }
-    Debug.LogWarning($"No valid slot found for {item.ItemName}.");
-    return false; // No valid slot
-}
-
-    public void UnequipItem(EquipmentSlot slot)
-    {
-        if (equippedItems[slot] == null)
-        {
-            Debug.LogWarning($"No item equipped in {slot} slot to unequip!");
-            return;
-        }
-
-        equippedItems[slot].RemoveFrom(characterStats);
-        Debug.Log($"Unequipped {equippedItems[slot].ItemName} from {slot}");
-        equippedItems[slot] = null;
-
-        OnEquipmentChanged?.Invoke();
     }
 
     public void AddToBag(Item item, int quantity = 1)
     {
-        if (item.IsStackable)
+        for (int i = 0; i < inventoryBag.Count; i++)
         {
-            foreach (var existingItem in inventoryBag)
+            if (inventoryBag[i] == null)
             {
-                if (existingItem.ItemName == item.ItemName && existingItem.CurrentStack < existingItem.MaxStack)
-                {
-                    int spaceLeft = existingItem.MaxStack - existingItem.CurrentStack;
-                    int amountToAdd = Mathf.Min(spaceLeft, quantity);
-
-                    existingItem.CurrentStack += amountToAdd;
-                    quantity -= amountToAdd;
-
-                    Debug.Log($"Added {amountToAdd} {item.ItemName} to an existing stack. Remaining quantity: {quantity}");
-
-                    if (quantity <= 0)
-                    {
-                        OnInventoryChanged?.Invoke();
-                        return;
-                    }
-                }
+                inventoryBag[i] = Instantiate(item);
+                inventoryBag[i].CurrentStack = quantity;
+                OnInventoryChanged?.Invoke();
+                return;
             }
         }
-
-        while (quantity > 0)
-        {
-            Item newItem = Instantiate(item);
-            int amountToAdd = Mathf.Min(item.MaxStack, quantity);
-
-            newItem.CurrentStack = amountToAdd;
-            inventoryBag.Add(newItem);
-
-            quantity -= amountToAdd;
-
-            Debug.Log($"Added {amountToAdd} {item.ItemName} to a new slot. Remaining quantity: {quantity}");
-        }
-
-        OnInventoryChanged?.Invoke();
+        Debug.LogWarning("Inventory is full. Cannot add more items.");
     }
 
     public void RemoveFromBag(Item item)
     {
-        if (inventoryBag.Remove(item))
+        int index = inventoryBag.IndexOf(item);
+        if (index >= 0)
         {
-            Debug.Log($"{item.ItemName} removed from the inventory bag.");
+            inventoryBag[index] = null;
             OnInventoryChanged?.Invoke();
         }
-        else
+    }
+
+    public void SwapItems(int indexA, int indexB)
+    {
+        if (indexA < 0 || indexA >= inventoryBag.Count || indexB < 0 || indexB >= inventoryBag.Count)
         {
-            Debug.LogWarning($"{item.ItemName} was not found in the inventory bag.");
+            Debug.LogError($"Invalid indices for SwapItems: indexA={indexA}, indexB={indexB}, Bag Count={inventoryBag.Count}");
+            return;
         }
+
+        Item temp = inventoryBag[indexA];
+        inventoryBag[indexA] = inventoryBag[indexB];
+        inventoryBag[indexB] = temp;
+
+        OnInventoryChanged?.Invoke();
     }
 
     public List<Item> GetBagContents()
@@ -158,63 +80,39 @@ public class Inventory : MonoBehaviour
     }
 
     public int GetItemIndex(Item item)
-{
-    return inventoryBag.IndexOf(item);
-}
+    {
+        return inventoryBag.IndexOf(item);
+    }
 
     public Item GetEquippedItem(EquipmentSlot slot)
     {
-        if (equippedItems.ContainsKey(slot))
-        {
-            Debug.Log($"Item in {slot}: {equippedItems[slot]?.ItemName ?? "None"}");
-            return equippedItems[slot];
-        }
-        Debug.LogError($"Equipment slot {slot} not found!");
-        return null;
+        return equippedItems.ContainsKey(slot) ? equippedItems[slot] : null;
     }
 
-public void SwapItems(int indexA, int indexB)
+    public void EquipItem(Item item, EquipmentSlot slot)
+    {
+        if (equippedItems[slot] != null)
+        {
+            UnequipItem(slot);
+        }
+
+        equippedItems[slot] = item;
+        item.ApplyTo(characterStats);
+        OnEquipmentChanged?.Invoke();
+    }
+
+    public void UnequipItem(EquipmentSlot slot)
+    {
+        equippedItems[slot]?.RemoveFrom(characterStats);
+        equippedItems[slot] = null;
+        OnEquipmentChanged?.Invoke();
+    }
+
+    public void ShowEquippedItems()
 {
-    List<Item> bagContents = GetBagContents();
-
-    if (indexA < 0 || indexA >= bagContents.Count || indexB < 0 || indexB >= bagContents.Count)
+    foreach (var kvp in equippedItems)
     {
-        Debug.LogError($"Invalid indices for SwapItems: indexA={indexA}, indexB={indexB}, Bag Count={bagContents.Count}");
-        return;
+        Debug.Log($"{kvp.Key}: {(kvp.Value != null ? kvp.Value.ItemName : "None")}");
     }
-
-    Item temp = bagContents[indexA];
-    bagContents[indexA] = bagContents[indexB];
-    bagContents[indexB] = temp;
-
-    Debug.Log($"Swapped items at indices {indexA} and {indexB}");
-    OnInventoryChanged?.Invoke(); // Notify UI of the change
 }
-
-    private bool IsItemValidForSlot(Item item, EquipmentSlot slot)
-    {
-        return (item.Type, slot) switch
-        {
-            (ItemType.Weapon, EquipmentSlot.Weapon) => true,
-            (ItemType.Offhand, EquipmentSlot.Offhand) => true,
-            (ItemType.Helmet, EquipmentSlot.Helmet) => true,
-            (ItemType.Gloves, EquipmentSlot.Gloves) => true,
-            (ItemType.Boots, EquipmentSlot.Boots) => true,
-            (ItemType.Chest, EquipmentSlot.Chest) => true,
-            (ItemType.Ring, EquipmentSlot.RingLeft or EquipmentSlot.RingRight) => true,
-            (ItemType.Amulet, EquipmentSlot.Amulet) => true,
-            (ItemType.Belt, EquipmentSlot.Belt) => true,
-            _ => false,
-        };
-    }
-
-
-
-        public void ShowEquippedItems()
-    {
-        foreach (var kvp in equippedItems)
-        {
-            Debug.Log($"{kvp.Key}: {(kvp.Value != null ? kvp.Value.ItemName : "None")}");
-        }
-    }
 }
