@@ -22,11 +22,16 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     private Image _itemImage; // The UI image displaying the item's sprite.
     private TMP_Text _stackText; // The UI text displaying the stack count.
 
-    private void Awake()
+    private void Start()
     {
+
         _rectTransform = GetComponent<RectTransform>();
         _itemImage = GetComponent<Image>(); // Automatically fetch the Image component.
         _stackText = GetComponentInChildren<TMP_Text>(); // Find the TMP_Text in the child object.
+            if (_stackText == null)
+    {
+        Debug.LogError($"TMP_Text component not found on {name} or its children!");
+    }   
 
         if (ItemData != null)
         {
@@ -34,20 +39,21 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         }
     }
 
-    public void InitializeItem(Item item)
+public void InitializeItem(Item item)
+{
+    ItemData = item;
+    CurrentStack = Mathf.Clamp(item.CurrentStack, 1, item.MaxStack);
+
+    // Update the item's image and reset its color.
+    if (_itemImage != null && item.ItemImage != null)
     {
-        ItemData = item;
-        CurrentStack = Mathf.Clamp(item.CurrentStack, 1, item.MaxStack);
-
-        // Update the item's image.
-        if (_itemImage != null && item.ItemImage != null)
-        {
-            _itemImage.sprite = item.ItemImage;
-            _itemImage.enabled = true; // Ensure the image is visible.
-        }
-
-        UpdateStackText();
+        _itemImage.sprite = item.ItemImage;
+        _itemImage.color = Color.white; // Reset to white to ensure no tinting.
+        _itemImage.enabled = true; // Ensure the image is visible.
     }
+
+    UpdateStackText();
+}
 
     public void UpdateStackText()
     {
