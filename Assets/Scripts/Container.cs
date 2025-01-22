@@ -32,6 +32,7 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             // If this container is empty, place the item inside.
             _currentItem = rect;
+            rect.SetParent(transform); // Make the item a child of this container.
             rect.position = _rectTransform.position;
 
             if (previousContainer != null)
@@ -57,10 +58,12 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         // Place the new item in this container.
         _currentItem = newItem;
+        newItem.SetParent(transform); // Make the new item a child of this container.
         newItem.position = _rectTransform.position;
 
         // Move the old item back to the previous container.
         previousContainer._currentItem = oldItem;
+        oldItem.SetParent(previousContainer.transform); // Make the old item a child of the previous container.
         oldItem.position = previousContainer._rectTransform.position;
 
         // Update the Draggable references for both items.

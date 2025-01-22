@@ -11,7 +11,7 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public Container CurrentContainer { get; set; } // The current container holding this item.
 
-    private Image _image; // Reference to the Image component.
+    private Image _image;
 
     public void OnPointerDown(PointerEventData eventData)
     {
