@@ -1,17 +1,17 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    private bool _isDragging = false;
     private RectTransform _rectTransform;
+    private bool _isDragging = false;
     private Vector2 _savedPosition;
 
-    public Container CurrentContainer { get; set; } // The current container holding this item.
+    public Container CurrentContainer { get; set; } // The container holding this item.
+    private Transform _originalParent;
 
-    private Image _image;
+    private Container _hoveredContainer; // The container currently being hovered while dragging.
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -21,15 +21,14 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             _savedPosition = _rectTransform.anchoredPosition;
 
-            // Temporarily remove the item from its current container.
-            CurrentContainer.RemoveItem();
+            // Remove highlight from the current container as dragging starts.
+            CurrentContainer.Highlight(false);
+
+            CurrentContainer.RemoveItem(); // Temporarily remove from the container.
         }
 
-        // Disable raycast target on the item's image so it doesn't block raycasts.
-        if (_image != null)
-        {
-            _image.raycastTarget = false;
-        }
+        _originalParent = transform.parent;
+        transform.SetParent(transform.root, true); // Move to root canvas for dragging.
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -44,7 +43,6 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
         else
         {
-            // If no valid container is found, return to the original container.
             if (CurrentContainer != null)
             {
                 CurrentContainer.PutInside(_rectTransform, null);
@@ -55,27 +53,58 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             }
         }
 
-        // Re-enable raycast target on the item's image.
-        if (_image != null)
+        // Clear highlight from any hovered container when dropping.
+        if (_hoveredContainer != null)
         {
-            _image.raycastTarget = true;
+            _hoveredContainer.Highlight(false);
+            _hoveredContainer = null;
+        }
+
+        transform.SetParent(_originalParent, true); // Restore original parent.
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        // Highlight the container of this draggable item (if not dragging).
+        if (!_isDragging && CurrentContainer != null)
+        {
+            CurrentContainer.Highlight(true);
         }
     }
 
-    private void Awake()
+    public void OnPointerExit(PointerEventData eventData)
     {
-        _rectTransform = GetComponent<RectTransform>();
-        _savedPosition = _rectTransform.anchoredPosition;
-
-        // Cache the Image component.
-        _image = GetComponent<Image>();
+        // Remove highlight from the container of this draggable item (if not dragging).
+        if (!_isDragging && CurrentContainer != null)
+        {
+            CurrentContainer.Highlight(false);
+        }
     }
 
-    private void Update()
+    public void OnDrag(PointerEventData eventData)
     {
         if (_isDragging)
         {
             _rectTransform.position = Input.mousePosition;
+
+            // Detect the container currently being hovered during dragging.
+            var container = DetectContainer();
+            if (container != _hoveredContainer)
+            {
+                // Remove highlight from the previously hovered container.
+                if (_hoveredContainer != null)
+                {
+                    _hoveredContainer.Highlight(false);
+                }
+
+                // Highlight the new container.
+                if (container != null)
+                {
+                    container.Highlight(true);
+                }
+
+                _hoveredContainer = container;
+            }
         }
     }
 
@@ -99,5 +128,11 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
 
         return null;
+    }
+
+    private void Awake()
+    {
+        _rectTransform = GetComponent<RectTransform>();
+        _savedPosition = _rectTransform.anchoredPosition;
     }
 }
