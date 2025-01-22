@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro; // For TextMeshPro
 
 public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -12,6 +14,56 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     private Transform _originalParent;
 
     private Container _hoveredContainer; // The container currently being hovered while dragging.
+
+    [Header("Item Details")]
+    public Item ItemData; // Reference to the ScriptableObject representing the item.
+    public int CurrentStack = 1; // The current stack amount for this item.
+
+    private Image _itemImage; // The UI image displaying the item's sprite.
+    private TMP_Text _stackText; // The UI text displaying the stack count.
+
+    private void Awake()
+    {
+        _rectTransform = GetComponent<RectTransform>();
+        _itemImage = GetComponent<Image>(); // Automatically fetch the Image component.
+        _stackText = GetComponentInChildren<TMP_Text>(); // Find the TMP_Text in the child object.
+
+        if (ItemData != null)
+        {
+            InitializeItem(ItemData);
+        }
+    }
+
+    public void InitializeItem(Item item)
+    {
+        ItemData = item;
+        CurrentStack = Mathf.Clamp(item.CurrentStack, 1, item.MaxStack);
+
+        // Update the item's image.
+        if (_itemImage != null && item.ItemImage != null)
+        {
+            _itemImage.sprite = item.ItemImage;
+            _itemImage.enabled = true; // Ensure the image is visible.
+        }
+
+        UpdateStackText();
+    }
+
+    public void UpdateStackText()
+    {
+        if (_stackText != null)
+        {
+            if (ItemData.IsStackable && CurrentStack > 1)
+            {
+                _stackText.text = CurrentStack.ToString();
+                _stackText.gameObject.SetActive(true); // Show the stack count.
+            }
+            else
+            {
+                _stackText.gameObject.SetActive(false); // Hide the stack count if <= 1.
+            }
+        }
+    }
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -38,8 +90,16 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         var container = DetectContainer();
         if (container != null)
         {
-            container.PutInside(_rectTransform, CurrentContainer);
-            CurrentContainer = container;
+            if (container.GetCurrentItem() != null && container.GetCurrentItem().GetComponent<Draggable>().ItemData == ItemData && ItemData.IsStackable)
+            {
+                // Stack the items if they are stackable and the same type.
+                StackItems(container.GetCurrentItem().GetComponent<Draggable>());
+            }
+            else
+            {
+                container.PutInside(_rectTransform, CurrentContainer);
+                CurrentContainer = container;
+            }
         }
         else
         {
@@ -65,7 +125,6 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // Highlight the container of this draggable item (if not dragging).
         if (!_isDragging && CurrentContainer != null)
         {
             CurrentContainer.Highlight(true);
@@ -74,7 +133,6 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        // Remove highlight from the container of this draggable item (if not dragging).
         if (!_isDragging && CurrentContainer != null)
         {
             CurrentContainer.Highlight(false);
@@ -87,23 +145,40 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         {
             _rectTransform.position = Input.mousePosition;
 
-            // Detect the container currently being hovered during dragging.
             var container = DetectContainer();
             if (container != _hoveredContainer)
             {
-                // Remove highlight from the previously hovered container.
                 if (_hoveredContainer != null)
                 {
                     _hoveredContainer.Highlight(false);
                 }
 
-                // Highlight the new container.
                 if (container != null)
                 {
                     container.Highlight(true);
                 }
 
                 _hoveredContainer = container;
+            }
+        }
+    }
+
+    private void StackItems(Draggable target)
+    {
+        int availableSpace = target.ItemData.MaxStack - target.CurrentStack;
+
+        if (availableSpace > 0)
+        {
+            int amountToTransfer = Mathf.Min(CurrentStack, availableSpace);
+            target.CurrentStack += amountToTransfer;
+            CurrentStack -= amountToTransfer;
+
+            target.UpdateStackText();
+            UpdateStackText();
+
+            if (CurrentStack <= 0)
+            {
+                Destroy(gameObject); // Destroy this item if it's fully stacked.
             }
         }
     }
@@ -128,11 +203,5 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         }
 
         return null;
-    }
-
-    private void Awake()
-    {
-        _rectTransform = GetComponent<RectTransform>();
-        _savedPosition = _rectTransform.anchoredPosition;
     }
 }
