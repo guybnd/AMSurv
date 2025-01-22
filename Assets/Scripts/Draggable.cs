@@ -24,14 +24,14 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     private void Start()
     {
-
         _rectTransform = GetComponent<RectTransform>();
         _itemImage = GetComponent<Image>(); // Automatically fetch the Image component.
-        _stackText = GetComponentInChildren<TMP_Text>(); // Find the TMP_Text in the child object.
-            if (_stackText == null)
-    {
-        Debug.LogError($"TMP_Text component not found on {name} or its children!");
-    }   
+        _stackText = GetComponentInChildren<TMP_Text>(true); // Find the TMP_Text in the child object.
+
+        if (_stackText == null)
+        {
+            Debug.LogError($"TMP_Text component not found on {name} or its children!");
+        }
 
         if (ItemData != null)
         {
@@ -39,21 +39,21 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         }
     }
 
-public void InitializeItem(Item item)
-{
-    ItemData = item;
-    CurrentStack = Mathf.Clamp(item.CurrentStack, 1, item.MaxStack);
-
-    // Update the item's image and reset its color.
-    if (_itemImage != null && item.ItemImage != null)
+    public void InitializeItem(Item item)
     {
-        _itemImage.sprite = item.ItemImage;
-        _itemImage.color = Color.white; // Reset to white to ensure no tinting.
-        _itemImage.enabled = true; // Ensure the image is visible.
-    }
+        ItemData = item;
+        CurrentStack = Mathf.Clamp(item.CurrentStack, 1, item.MaxStack);
 
-    UpdateStackText();
-}
+        // Update the item's image and reset its color.
+        if (_itemImage != null && item.ItemImage != null)
+        {
+            _itemImage.sprite = item.ItemImage;
+            _itemImage.color = Color.white; // Reset to white to ensure no tinting.
+            _itemImage.enabled = true; // Ensure the image is visible.
+        }
+
+        UpdateStackText();
+    }
 
     public void UpdateStackText()
     {
@@ -98,8 +98,19 @@ public void InitializeItem(Item item)
         {
             if (container.GetCurrentItem() != null && container.GetCurrentItem().GetComponent<Draggable>().ItemData == ItemData && ItemData.IsStackable)
             {
-                // Stack the items if they are stackable and the same type.
-                StackItems(container.GetCurrentItem().GetComponent<Draggable>());
+                // Attempt to stack the items.
+                bool fullyStacked = StackItems(container.GetCurrentItem().GetComponent<Draggable>());
+
+                if (!fullyStacked)
+                {
+                    // Return to original position if there is no space left for stacking.
+                    ReturnToOriginalPosition();
+                }
+                else
+                {
+                    // Destroy the origin if fully stacked.
+                    Destroy(gameObject);
+                }
             }
             else
             {
@@ -109,14 +120,8 @@ public void InitializeItem(Item item)
         }
         else
         {
-            if (CurrentContainer != null)
-            {
-                CurrentContainer.PutInside(_rectTransform, null);
-            }
-            else
-            {
-                _rectTransform.anchoredPosition = _savedPosition;
-            }
+            // No container detected; return to original position.
+            ReturnToOriginalPosition();
         }
 
         // Clear highlight from any hovered container when dropping.
@@ -169,7 +174,7 @@ public void InitializeItem(Item item)
         }
     }
 
-    private void StackItems(Draggable target)
+    private bool StackItems(Draggable target)
     {
         int availableSpace = target.ItemData.MaxStack - target.CurrentStack;
 
@@ -182,10 +187,19 @@ public void InitializeItem(Item item)
             target.UpdateStackText();
             UpdateStackText();
 
-            if (CurrentStack <= 0)
-            {
-                Destroy(gameObject); // Destroy this item if it's fully stacked.
-            }
+            return CurrentStack <= 0; // Return true if the item is fully stacked.
+        }
+
+        return false; // No space left to stack.
+    }
+
+    private void ReturnToOriginalPosition()
+    {
+        _rectTransform.anchoredPosition = _savedPosition;
+
+        if (CurrentContainer != null)
+        {
+            CurrentContainer.PutInside(_rectTransform, null);
         }
     }
 
