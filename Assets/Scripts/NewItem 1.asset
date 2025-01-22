@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: NewItem 1
   m_EditorClassIdentifier: 
   ItemName: helmed
-  Type: 2
+  Type: 9
+  ItemImage: {fileID: 0}
+  IsStackable: 0
+  MaxStack: 1
+  CurrentStack: 1
   StatModifiers:
   - StatName: Life
     Value: 10
