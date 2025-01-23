@@ -10,7 +10,32 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private Item _currentItem; // New field to store the actual Item data
     private Color _originalColor;
 
+    public enum ContainerType
+    {
+        Inventory,
+        Equipment,
+        Stash,
+        Loot
+    }
+    public enum EquipmentSlotType
+    {
+        Weapon,
+        Offhand,
+        Helmet,
+        Gloves,
+        Boots,
+        Chest,
+        LeftRing,
+        RightRing,
+        Amulet,
+        Belt,
+        None
+    }
+
     public int ID { get; set; }
+
+    [SerializeField] private ContainerType _containerType = ContainerType.Inventory;
+    [SerializeField] private EquipmentSlotType _equipmentSlotType = EquipmentSlotType.None;
 
     private void Awake()
     {

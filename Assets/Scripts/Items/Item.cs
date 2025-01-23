@@ -18,6 +18,14 @@ public enum ItemType
     BagItem // Items that cannot be equipped
 }
 
+public enum  ItemRarity
+{
+    Normal,
+    Magic,
+    Rare,
+    Unique
+}
+
 
 [CreateAssetMenu(fileName = "NewItem", menuName = "ARPG/Item")]
 public class Item : ScriptableObject
@@ -25,7 +33,7 @@ public class Item : ScriptableObject
     public string ItemName; // Name of the item
     public ItemType Type; // The type of the item (e.g., Weapon, Helmet)
     public Sprite ItemImage; // The sprite to display in the inventory UI
-
+    public ItemRarity Rarity = ItemRarity.Normal;
         public bool IsStackable; // Determines if the item can stack
     public int MaxStack = 1; // Maximum number of items in a stack
     public int CurrentStack = 1; // Current number of items in the stack
