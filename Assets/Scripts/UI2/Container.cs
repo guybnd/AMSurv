@@ -1,41 +1,29 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+public enum ContainerType
+{
+    Inventory,
+    Equipment,
+    Stash,
+    Loot
+}
 
 public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private ItemTooltip tooltip; // Reference to the tooltip component
-
+    [SerializeField] private ItemTooltip tooltip;
+    public ContainerType GetContainerType() => _containerType;
     private RectTransform _rectTransform;
     private RectTransform _currentItemTransform;
-    private Item _currentItem; // New field to store the actual Item data
+    private Item _currentItem;
     private Color _originalColor;
 
-    public enum ContainerType
-    {
-        Inventory,
-        Equipment,
-        Stash,
-        Loot
-    }
-    public enum EquipmentSlotType
-    {
-        Weapon,
-        Offhand,
-        Helmet,
-        Gloves,
-        Boots,
-        Chest,
-        LeftRing,
-        RightRing,
-        Amulet,
-        Belt,
-        None
-    }
 
     public int ID { get; set; }
 
-    [SerializeField] private ContainerType _containerType = ContainerType.Inventory;
-    [SerializeField] private EquipmentSlotType _equipmentSlotType = EquipmentSlotType.None;
+    [SerializeField] public ContainerType _containerType = ContainerType.Inventory;
+
+    [SerializeField] public ItemType _acceptedItemType = ItemType.BagItem;
 
     private void Awake()
     {
@@ -47,49 +35,76 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             _originalColor = image.color;
         }
 
-        // If tooltip reference is not set, try to find it in the scene
         if (tooltip == null)
         {
-            if (tooltip == null)
-            {
-                tooltip = FindFirstObjectByType<ItemTooltip>();
-            }
             tooltip = FindFirstObjectByType<ItemTooltip>();
         }
     }
 
-    // New method to set both the transform and item data
-    public void SetCurrentItem(RectTransform itemTransform, Item itemData)
+    public bool CanAcceptItem(Item item)
     {
-        _currentItemTransform = itemTransform;
-        _currentItem = itemData;
+        if (item == null) return false;
+
+        switch (_containerType)
+        {
+            case ContainerType.Inventory:
+            case ContainerType.Stash:
+            case ContainerType.Loot:
+                return true; // These containers accept any item
+
+            case ContainerType.Equipment:
+                // Check if the item type matches the accepted type
+                return item.Type == _acceptedItemType;
+
+            default:
+                return false;
+        }
     }
 
-    public void PutInside(RectTransform rect, Container previousContainer)
+public bool PutInside(RectTransform rect, Container previousContainer)
     {
+        var draggable = rect.GetComponent<Draggable>();
+        if (draggable == null || draggable.ItemData == null)
+        {
+            Debug.Log($"Container: Invalid item being placed");
+            return false;
+        }
+
+        if (!CanAcceptItem(draggable.ItemData))
+        {
+            Debug.Log($"Container: Cannot accept item of type {draggable.ItemData.Type}");
+            return false;
+        }
+
         if (_currentItemTransform != null)
         {
-            // If this container already has an item, swap the items
+            var currentDraggable = _currentItemTransform.GetComponent<Draggable>();
+            if (currentDraggable != null && !previousContainer.CanAcceptItem(currentDraggable.ItemData))
+            {
+                Debug.Log($"Container: Cannot swap items - destination container cannot accept current item");
+                return false;
+            }
             SwapItems(rect, previousContainer);
         }
         else
         {
-            // If this container is empty, place the item inside
             _currentItemTransform = rect;
             rect.position = _rectTransform.position;
-
-            // Get the item data from the Draggable component
-            var draggable = rect.GetComponent<Draggable>();
-            if (draggable != null)
-            {
-                _currentItem = draggable.ItemData;
-            }
+            _currentItem = draggable.ItemData;
 
             if (previousContainer != null)
             {
                 previousContainer.RemoveItem();
             }
         }
+
+        return true;
+    }
+
+    public void SetCurrentItem(RectTransform itemTransform, Item itemData)
+    {
+        _currentItemTransform = itemTransform;
+        _currentItem = itemData;
     }
 
     public void RemoveItem()
@@ -113,20 +128,16 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         var oldItemTransform = _currentItemTransform;
         var oldItemData = _currentItem;
 
-        // Get the new item's data from its Draggable component
         var newDraggable = newItem.GetComponent<Draggable>();
 
-        // Place the new item in this container
         _currentItemTransform = newItem;
         _currentItem = newDraggable.ItemData;
         newItem.position = _rectTransform.position;
 
-        // Move the old item back to the previous container
         previousContainer._currentItemTransform = oldItemTransform;
         previousContainer._currentItem = oldItemData;
         oldItemTransform.position = previousContainer._rectTransform.position;
 
-        // Update the Draggable references
         var oldDraggable = oldItemTransform.GetComponent<Draggable>();
         if (oldDraggable != null)
         {
@@ -152,7 +163,6 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public void ShowTooltip()
     {
-        Debug.Log($"Container: ShowTooltip - Tooltip Component: {(tooltip != null ? "exists" : "null")} - Current Item: {(_currentItem != null ? _currentItem.ItemName : "null")}");
         if (_currentItem != null && tooltip != null)
         {
             tooltip.ShowTooltip(_currentItem, Input.mousePosition);

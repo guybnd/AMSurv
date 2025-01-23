@@ -31,7 +31,7 @@ public enum  ItemRarity
 public class Item : ScriptableObject
 {
     public string ItemName; // Name of the item
-    public ItemType Type; // The type of the item (e.g., Weapon, Helmet)
+    public ItemType Type = ItemType.BagItem; // The type of the item (e.g., Weapon, Helmet)
     public Sprite ItemImage; // The sprite to display in the inventory UI
     public ItemRarity Rarity = ItemRarity.Normal;
         public bool IsStackable; // Determines if the item can stack

@@ -4,7 +4,8 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 
-public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IPointerEnterHandler, IPointerExitHandler
+public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler,
+                        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     private RectTransform _rectTransform;
     private bool _isDragging = false;
@@ -12,7 +13,6 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     public Container CurrentContainer { get; set; }
     private Transform _originalParent;
-
     private Container _hoveredContainer;
 
     [Header("Item Details")]
@@ -36,6 +36,37 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         if (ItemData != null)
         {
             InitializeItem(ItemData);
+        }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Right &&
+            ItemData.Type != ItemType.BagItem)
+        {
+            TryEquipItem();
+        }
+    }
+
+    private void TryEquipItem()
+    {
+        if (ItemData.Type == ItemType.BagItem) return;
+
+        var containers = FindObjectsOfType<Container>();
+        foreach (var container in containers)
+        {
+            // Skip inventory/bag containers
+            if (container.GetContainerType() == ContainerType.Inventory) continue;
+
+            if (container.CanAcceptItem(ItemData))
+            {
+                bool success = container.PutInside(_rectTransform, CurrentContainer);
+                if (success)
+                {
+                    CurrentContainer = container;
+                    return;
+                }
+            }
         }
     }
 
@@ -92,38 +123,55 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         var container = DetectContainer();
         if (container != null)
         {
-            // Get the RectTransform of the current item in the container
-            RectTransform currentItemTransform = container.GetCurrentItemTransform();
-
-            if (currentItemTransform != null)
+            if (!container.CanAcceptItem(ItemData))
             {
-                // Get the Draggable component from the current item
-                Draggable targetDraggable = currentItemTransform.GetComponent<Draggable>();
+                ReturnToOriginalPosition();
+            }
+            else
+            {
+                RectTransform currentItemTransform = container.GetCurrentItemTransform();
 
-                if (targetDraggable != null && targetDraggable.ItemData == ItemData && ItemData.IsStackable)
+                if (currentItemTransform != null)
                 {
-                    // Attempt to stack the items
-                    bool fullyStacked = StackItems(targetDraggable);
+                    Draggable targetDraggable = currentItemTransform.GetComponent<Draggable>();
 
-                    if (!fullyStacked)
+                    if (targetDraggable != null && targetDraggable.ItemData == ItemData && ItemData.IsStackable)
                     {
-                        ReturnToOriginalPosition();
+                        bool fullyStacked = StackItems(targetDraggable);
+                        if (!fullyStacked)
+                        {
+                            ReturnToOriginalPosition();
+                        }
+                        else
+                        {
+                            Destroy(gameObject);
+                        }
                     }
                     else
                     {
-                        Destroy(gameObject);
+                        bool success = container.PutInside(_rectTransform, CurrentContainer);
+                        if (success)
+                        {
+                            CurrentContainer = container;
+                        }
+                        else
+                        {
+                            ReturnToOriginalPosition();
+                        }
                     }
                 }
                 else
                 {
-                    container.PutInside(_rectTransform, CurrentContainer);
-                    CurrentContainer = container;
+                    bool success = container.PutInside(_rectTransform, CurrentContainer);
+                    if (success)
+                    {
+                        CurrentContainer = container;
+                    }
+                    else
+                    {
+                        ReturnToOriginalPosition();
+                    }
                 }
-            }
-            else
-            {
-                container.PutInside(_rectTransform, CurrentContainer);
-                CurrentContainer = container;
             }
         }
         else
