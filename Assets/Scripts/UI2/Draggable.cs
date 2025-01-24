@@ -90,7 +90,7 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     {
         if (ItemData.Type == ItemType.BagItem) return;
 
-        var containers = FindObjectsOfType<Container>();
+        var containers = Object.FindObjectsByType<Container>(FindObjectsSortMode.None);
         foreach (var container in containers)
         {
             // Skip inventory/bag containers
