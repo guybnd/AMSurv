@@ -15,10 +15,11 @@ MonoBehaviour:
   ItemName: axe
   Type: 0
   ItemImage: {fileID: 21300000, guid: d22803422e064e146b5ff7abf08d7683, type: 3}
+  Rarity: 0
   IsStackable: 0
   MaxStack: 1
   CurrentStack: 1
   StatModifiers:
-  - StatName: 
-    Value: 0
+  - StatName: Statto
+    Value: 123
     IsMultiplicative: 0

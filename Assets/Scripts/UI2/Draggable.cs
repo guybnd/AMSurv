@@ -41,10 +41,48 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Right &&
-            ItemData.Type != ItemType.BagItem)
+        if (eventData.button == PointerEventData.InputButton.Right)
         {
-            TryEquipItem();
+            if (CurrentContainer.GetContainerType() == ContainerType.Equipment)
+            {
+                // Send the item back to inventory
+                var inventoryContainers = FindObjectsOfType<Container>();
+                foreach (var container in inventoryContainers)
+                {
+                    if (container.GetContainerType() == ContainerType.Inventory && container.GetCurrentItemTransform() == null)
+                    {
+                        bool success = container.PutInside(_rectTransform, CurrentContainer);
+                        if (success)
+                        {
+                            CurrentContainer.RemoveItem();
+                            CurrentContainer = container;
+                        }
+                        return;
+                    }
+                }
+
+                Debug.LogWarning("No empty inventory slots available to send the item back.");
+            }
+            else if (CurrentContainer.GetContainerType() == ContainerType.Inventory && ItemData.Type != ItemType.BagItem)
+            {
+                // Try to equip the item from the inventory
+                var equipmentContainers = FindObjectsOfType<Container>();
+                foreach (var container in equipmentContainers)
+                {
+                    if (container.GetContainerType() == ContainerType.Equipment && container.CanAcceptItem(ItemData) && container.GetCurrentItemTransform() == null)
+                    {
+                        bool success = container.PutInside(_rectTransform, CurrentContainer);
+                        if (success)
+                        {
+                            CurrentContainer.RemoveItem();
+                            CurrentContainer = container;
+                        }
+                        return;
+                    }
+                }
+
+                Debug.LogWarning("No available equipment slots for this item.");
+            }
         }
     }
 
@@ -103,13 +141,12 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        _isDragging = true;
+        _isDragging = false; // Reset dragging state on pointer down
 
         if (CurrentContainer != null)
         {
             _savedPosition = _rectTransform.anchoredPosition;
             CurrentContainer.Highlight(false);
-            CurrentContainer.RemoveItem();
         }
 
         _originalParent = transform.parent;
@@ -118,71 +155,39 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (!_isDragging)
+        {
+            // If not dragging, reset position and exit
+            transform.SetParent(_originalParent, true);
+            return;
+        }
+
         _isDragging = false;
 
+        // Detect the container under the pointer
         var container = DetectContainer();
-        if (container != null)
+        if (container == null)
         {
-            if (!container.CanAcceptItem(ItemData))
-            {
-                ReturnToOriginalPosition();
-            }
-            else
-            {
-                RectTransform currentItemTransform = container.GetCurrentItemTransform();
+            Debug.LogWarning("No valid container detected. Returning item to its original position.");
+            ReturnToOriginalPosition();
+            transform.SetParent(_originalParent, true);
+            return;
+        }
 
-                if (currentItemTransform != null)
-                {
-                    Draggable targetDraggable = currentItemTransform.GetComponent<Draggable>();
-
-                    if (targetDraggable != null && targetDraggable.ItemData == ItemData && ItemData.IsStackable)
-                    {
-                        bool fullyStacked = StackItems(targetDraggable);
-                        if (!fullyStacked)
-                        {
-                            ReturnToOriginalPosition();
-                        }
-                        else
-                        {
-                            Destroy(gameObject);
-                        }
-                    }
-                    else
-                    {
-                        bool success = container.PutInside(_rectTransform, CurrentContainer);
-                        if (success)
-                        {
-                            CurrentContainer = container;
-                        }
-                        else
-                        {
-                            ReturnToOriginalPosition();
-                        }
-                    }
-                }
-                else
-                {
-                    bool success = container.PutInside(_rectTransform, CurrentContainer);
-                    if (success)
-                    {
-                        CurrentContainer = container;
-                    }
-                    else
-                    {
-                        ReturnToOriginalPosition();
-                    }
-                }
-            }
+        // Check if the container can accept the item
+        if (!container.CanAcceptItem(ItemData) || !container.PutInside(_rectTransform, CurrentContainer))
+        {
+            Debug.LogWarning("Container cannot accept item. Returning item to its original position.");
+            ReturnToOriginalPosition();
         }
         else
         {
-            ReturnToOriginalPosition();
-        }
-
-        if (_hoveredContainer != null)
-        {
-            _hoveredContainer.Highlight(false);
-            _hoveredContainer = null;
+            // Update the item's current container
+            if (CurrentContainer != null)
+            {
+                CurrentContainer.RemoveItem();
+            }
+            CurrentContainer = container;
         }
 
         transform.SetParent(_originalParent, true);
@@ -206,27 +211,26 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         }
     }
 
+
     public void OnDrag(PointerEventData eventData)
     {
-        if (_isDragging)
+        _isDragging = true; // Mark as dragging
+        _rectTransform.position = Input.mousePosition;
+
+        var container = DetectContainer();
+        if (container != _hoveredContainer)
         {
-            _rectTransform.position = Input.mousePosition;
-
-            var container = DetectContainer();
-            if (container != _hoveredContainer)
+            if (_hoveredContainer != null)
             {
-                if (_hoveredContainer != null)
-                {
-                    _hoveredContainer.Highlight(false);
-                }
-
-                if (container != null)
-                {
-                    container.Highlight(true);
-                }
-
-                _hoveredContainer = container;
+                _hoveredContainer.Highlight(false);
             }
+
+            if (container != null)
+            {
+                container.Highlight(true);
+            }
+
+            _hoveredContainer = container;
         }
     }
 

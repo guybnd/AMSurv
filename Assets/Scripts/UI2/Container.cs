@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+
 public enum ContainerType
 {
     Inventory,
@@ -12,24 +13,24 @@ public enum ContainerType
 public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private ItemTooltip tooltip;
+    [SerializeField] private CharacterStats characterStats;
     public ContainerType GetContainerType() => _containerType;
+
     private RectTransform _rectTransform;
     private RectTransform _currentItemTransform;
     private Item _currentItem;
     private Color _originalColor;
 
-
     public int ID { get; set; }
 
     [SerializeField] public ContainerType _containerType = ContainerType.Inventory;
-
     [SerializeField] public ItemType _acceptedItemType = ItemType.BagItem;
 
     private void Awake()
     {
         _rectTransform = GetComponent<RectTransform>();
 
-        var image = GetComponent<UnityEngine.UI.Image>();
+        var image = GetComponent<Image>();
         if (image != null)
         {
             _originalColor = image.color;
@@ -53,7 +54,6 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                 return true; // These containers accept any item
 
             case ContainerType.Equipment:
-                // Check if the item type matches the accepted type
                 return item.Type == _acceptedItemType;
 
             default:
@@ -61,66 +61,92 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
     }
 
-public bool PutInside(RectTransform rect, Container previousContainer)
+    public bool PutInside(RectTransform rect, Container previousContainer)
     {
         var draggable = rect.GetComponent<Draggable>();
         if (draggable == null || draggable.ItemData == null)
         {
-            Debug.Log($"Container: Invalid item being placed");
+            Debug.Log("Container: Invalid item being placed");
             return false;
         }
 
         if (!CanAcceptItem(draggable.ItemData))
         {
-            Debug.Log($"Container: Cannot accept item of type {draggable.ItemData.Type}");
+            Debug.Log("Container: Cannot accept item of type " + draggable.ItemData.Type);
             return false;
         }
 
+        // Check if the slot already has an item
         if (_currentItemTransform != null)
         {
             var currentDraggable = _currentItemTransform.GetComponent<Draggable>();
-            if (currentDraggable != null && !previousContainer.CanAcceptItem(currentDraggable.ItemData))
-            {
-                Debug.Log($"Container: Cannot swap items - destination container cannot accept current item");
-                return false;
-            }
-            SwapItems(rect, previousContainer);
-        }
-        else
-        {
-            _currentItemTransform = rect;
-            rect.position = _rectTransform.position;
-            _currentItem = draggable.ItemData;
 
-            if (previousContainer != null)
+            // Check if items can stack
+            if (currentDraggable != null &&
+                draggable.ItemData.IsStackable &&
+                currentDraggable.ItemData.IsStackable &&
+                draggable.ItemData.ID == currentDraggable.ItemData.ID) // Ensure items are identical
             {
-                previousContainer.RemoveItem();
+                // Merge stacks
+                int availableSpace = currentDraggable.ItemData.MaxStack - currentDraggable.CurrentStack;
+                if (availableSpace > 0)
+                {
+                    int transferAmount = Mathf.Min(draggable.CurrentStack, availableSpace);
+                    currentDraggable.CurrentStack += transferAmount;
+                    draggable.CurrentStack -= transferAmount;
+
+                    currentDraggable.UpdateStackText();
+                    draggable.UpdateStackText();
+
+                    // Remove the item if the entire stack has been transferred
+                    if (draggable.CurrentStack <= 0)
+                    {
+                        Destroy(draggable.gameObject);
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    Debug.Log("Container: No available space to stack items");
+                    return false;
+                }
             }
+            else
+            {
+                Debug.Log("Container: Cannot stack items. Attempting to swap instead.");
+                SwapItems(rect, previousContainer);
+                return true;
+            }
+        }
+
+        // Slot is empty, place the item
+        _currentItemTransform = rect;
+        _currentItem = draggable.ItemData;
+        rect.position = _rectTransform.position;
+
+        if (_containerType == ContainerType.Equipment)
+        {
+            EquipItem(_currentItem); // Apply stats
+        }
+
+        if (previousContainer != null)
+        {
+            previousContainer.RemoveItem();
         }
 
         return true;
     }
 
-    public void SetCurrentItem(RectTransform itemTransform, Item itemData)
-    {
-        _currentItemTransform = itemTransform;
-        _currentItem = itemData;
-    }
-
     public void RemoveItem()
     {
+        if (_currentItem != null && _containerType == ContainerType.Equipment)
+        {
+            UnequipItem(_currentItem);
+        }
+
         _currentItemTransform = null;
         _currentItem = null;
-    }
-
-    public RectTransform GetCurrentItemTransform()
-    {
-        return _currentItemTransform;
-    }
-
-    public Item GetCurrentItem()
-    {
-        return _currentItem;
     }
 
     private void SwapItems(RectTransform newItem, Container previousContainer)
@@ -130,22 +156,61 @@ public bool PutInside(RectTransform rect, Container previousContainer)
 
         var newDraggable = newItem.GetComponent<Draggable>();
 
+        // Unequip the currently held item if swapping from equipment
+        if (_containerType == ContainerType.Equipment)
+        {
+            UnequipItem(oldItemData);
+        }
+
+        // Equip the new item
         _currentItemTransform = newItem;
         _currentItem = newDraggable.ItemData;
         newItem.position = _rectTransform.position;
 
-        previousContainer._currentItemTransform = oldItemTransform;
-        previousContainer._currentItem = oldItemData;
-        oldItemTransform.position = previousContainer._rectTransform.position;
-
-        var oldDraggable = oldItemTransform.GetComponent<Draggable>();
-        if (oldDraggable != null)
+        if (_containerType == ContainerType.Equipment)
         {
-            oldDraggable.CurrentContainer = previousContainer;
+            EquipItem(_currentItem);
         }
-        if (newDraggable != null)
+
+        // Move the old item to the previous container
+        if (previousContainer != null)
         {
-            newDraggable.CurrentContainer = this;
+            previousContainer._currentItemTransform = oldItemTransform;
+            previousContainer._currentItem = oldItemData;
+            oldItemTransform.position = previousContainer._rectTransform.position;
+
+            var oldDraggable = oldItemTransform.GetComponent<Draggable>();
+            if (oldDraggable != null)
+            {
+                oldDraggable.CurrentContainer = previousContainer;
+            }
+        }
+
+        var newDraggableComponent = newItem.GetComponent<Draggable>();
+        if (newDraggableComponent != null)
+        {
+            newDraggableComponent.CurrentContainer = this;
+        }
+    }
+
+
+    public void EquipItem(Item item)
+    {
+        if (item == null || characterStats == null) return;
+
+        foreach (var modifier in item.StatModifiers)
+        {
+            characterStats.GetStat(modifier.StatName).AddModifier(modifier.Value, modifier.IsMultiplicative);
+        }
+    }
+
+    public void UnequipItem(Item item)
+    {
+        if (item == null || characterStats == null) return;
+
+        foreach (var modifier in item.StatModifiers)
+        {
+            characterStats.GetStat(modifier.StatName).RemoveModifier(modifier.Value, modifier.IsMultiplicative);
         }
     }
 
@@ -179,10 +244,23 @@ public bool PutInside(RectTransform rect, Container previousContainer)
 
     public void Highlight(bool enable)
     {
-        var image = GetComponent<UnityEngine.UI.Image>();
+        var image = GetComponent<Image>();
         if (image != null)
         {
             image.color = enable ? Color.yellow : _originalColor;
         }
     }
+
+
+    public RectTransform GetCurrentItemTransform()
+    {
+        return _currentItemTransform;
+    }
+
+    public void SetCurrentItem(RectTransform itemTransform, Item itemData)
+    {
+        _currentItemTransform = itemTransform;
+        _currentItem = itemData;
+    }
+
 }

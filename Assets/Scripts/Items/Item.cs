@@ -38,6 +38,7 @@ public class Item : ScriptableObject
     public int MaxStack = 1; // Maximum number of items in a stack
     public int CurrentStack = 1; // Current number of items in the stack
     public List<StatModifier> StatModifiers = new List<StatModifier>();
+    public int ID;
 
     public void ApplyTo(CharacterStats characterStats)
     {

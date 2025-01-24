@@ -10,14 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a2c0289a633b817489b4f85eaf568f71, type: 3}
-  m_Name: Potion
+  m_Name: Ring
   m_EditorClassIdentifier: 
-  ItemName: 
-  Type: 9
-  ItemImage: {fileID: 21300000, guid: 28d59d4aaf02fc94092d8b84d7f8fd64, type: 3}
+  ItemName: Ring
+  Type: 6
+  ItemImage: {fileID: 21300000, guid: 9d5365d85f9ac2e46b561528dae6e5ab, type: 3}
   Rarity: 0
-  IsStackable: 1
-  MaxStack: 10
-  CurrentStack: 4
-  StatModifiers: []
-  ID: 10
+  IsStackable: 0
+  MaxStack: 1
+  CurrentStack: 1
+  StatModifiers:
+  - StatName: Ringstat2
+    Value: 10
+    IsMultiplicative: 0
