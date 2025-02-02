@@ -20,6 +20,7 @@ MonoBehaviour:
   MaxStack: 1
   CurrentStack: 1
   StatModifiers:
-  - StatName: Statto
+  - StatName: Strength
     Value: 123
     IsMultiplicative: 0
+  ID: 0

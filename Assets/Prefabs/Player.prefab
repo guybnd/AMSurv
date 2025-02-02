@@ -13,8 +13,7 @@ GameObject:
   - component: {fileID: 6151169387303481856}
   - component: {fileID: 8773077900995624543}
   - component: {fileID: 4185871715473539074}
-  - component: {fileID: 2578959434059592136}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -126,18 +125,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 510161922b477d04c8a8d8be283f1b28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2578959434059592136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4220695148454323146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36591c55085f8c247b72b22db9ed8cdf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &4355371384514850190
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,7 +135,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3895157684599570270}
   - component: {fileID: 7056927626159487783}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: players blue x3_99
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -211,15 +198,15 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -89909353
+  m_SortingLayer: 1
   m_SortingOrder: 0
-  m_Sprite: {fileID: -4382268695982152058, guid: 6c86aea5792405845a7ffd34f8fb6a13, type: 3}
+  m_Sprite: {fileID: -8681091468924136842, guid: 28cbf855f3654654597c7e971a264c8f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.5, y: 0.56}
+  m_Size: {x: 0.4375, y: 0.5625}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

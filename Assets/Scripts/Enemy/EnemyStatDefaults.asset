@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1ec1378ff40fad4eac134f53b85baee, type: 3}
+  m_Name: EnemyStatDefaults
+  m_EditorClassIdentifier: 
+  EnemyName: Enemy
+  Rarity: 0
+  StatModifiers:
+  - StatName: MoveSpeed
+    Value: 3
+    IsMultiplicative: 0
+  - StatName: AttackCooldown
+    Value: 1.5
+    IsMultiplicative: 0
+  - StatName: DetectionRange
+    Value: 10
+    IsMultiplicative: 0
+  - StatName: AttackRange
+    Value: 2
+    IsMultiplicative: 0
+  - StatName: Life
+    Value: 100
+    IsMultiplicative: 0
+  - StatName: ExperienceGiven
+    Value: 10
+    IsMultiplicative: 0
