@@ -26,6 +26,8 @@ public class WeaponFirer : MonoBehaviour
         float totalSpread = (projectileCount - 1) * spreadAngle;
         float startAngle = -totalSpread / 2f;
 
+        float projectileSpeed = equippedWeapon.ProjectileSpeed;
+
         // Calculate the damage (and crit status) for this attack.
         AttackData attackData = ComputeAttackDamage();
 

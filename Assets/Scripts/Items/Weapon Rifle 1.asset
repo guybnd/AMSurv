@@ -30,7 +30,7 @@ MonoBehaviour:
     Value: 2
     IsMultiplicative: 0
   - StatName: ProjectileSpeed
-    Value: 12
+    Value: 25
     IsMultiplicative: 0
   - StatName: AreaOfEffect
     Value: 2
