@@ -1,0 +1,42 @@
+lets try instead to make this kind of system
+
+/// attack pseudo code
+///attack code has reference to the player stats and the weapon stats
+// attack code has reference to target enemy stats to apply the damage to
+
+
+/// class apply damage - determines who the target EnemyStats is and applies damage to it when he is hit
+/// 
+
+// class try to attack, the player attempts to use the weapon to fire it, determined by the weapons base attack speed and the player's attack speed modifier
+// the attack speed functions as a animation duration, if an attack speed says the attack should happen once every 0.5 second, then the attack has a 0.5 second animation time during which it cannot be used again
+//  
+
+// attack radius class, if the attack is an aoe attack, then it's radius is determined by the weapon's base aoe and the player's aoe modifier
+
+// class attack damage calculation - determines the outgoing damage of the attack to send to the enemy stats by including the player stats and the weapon stats
+// reference for player stats that looks up any stat below that the player might have
+// each attack has the following properties, minimum physical damage, maximum physical damage, same with fire, cold, lightning, chaos
+// each attack has elemental penetration precentage
+// each attack has a chance to apply a status effect, the status effect has a duration and a chance to apply, status include bleed, shock, freeze, ignite, poison,or other scalable types
+// each attack has a chance to hit, determined by the player's accuracy and the enemy's evasion
+// each attack has critical strike chance and critical strike m
+ultiplier determined by the weapon base critical strike chance, player critical strike chance, and player critical strike multiplier
+
+
+
+
+
+
+
+weapon class
+
+// reference to item class
+// item must have item type of weapon to count as a weapon
+// class is public so it can be referenced by other classes to calculate the damage
+// function that receives the weapon's stats from an item's stats
+// 
+// weapon base stats are the following
+// base attack speed, base critical hit chance, projectile amount, projectile speed
+// minimum physical damage, maximum physical damage, same with fire, cold, lightning, chaos
+// area of effect, 

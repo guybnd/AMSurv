@@ -39,6 +39,7 @@ public class Item : ScriptableObject
     public int CurrentStack = 1; // Current number of items in the stack
     public List<StatModifier> StatModifiers = new List<StatModifier>();
     public int ID;
+    public WeaponType WeaponType { get; set; }
 
     public void ApplyTo(CharacterStats characterStats)
     {

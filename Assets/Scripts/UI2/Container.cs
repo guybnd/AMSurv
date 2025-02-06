@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,6 +16,9 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 {
     [SerializeField] private ItemTooltip tooltip;
     [SerializeField] private CharacterStats characterStats;
+    // Reference to the Weapon component that will receive weapon stat updates.
+    [SerializeField] private Weapon equippedWeapon;
+
     public ContainerType GetContainerType() => _containerType;
 
     private RectTransform _rectTransform;
@@ -39,6 +44,12 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         if (tooltip == null)
         {
             tooltip = FindFirstObjectByType<ItemTooltip>();
+        }
+
+        // If no weapon has been assigned in the Inspector, try to find one in children.
+        if (equippedWeapon == null)
+        {
+            equippedWeapon = GetComponentInChildren<Weapon>();
         }
     }
 
@@ -127,7 +138,7 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         if (_containerType == ContainerType.Equipment)
         {
-            EquipItem(_currentItem); // Apply stats
+            EquipItem(_currentItem); // Apply stats, including weapon stats if applicable.
         }
 
         if (previousContainer != null)
@@ -193,24 +204,99 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
     }
 
-
+    /// <summary>
+    /// Equips an item.
+    /// If it's a weapon, updates the Weapon component's stats and sets its weapon type.
+    /// Otherwise, it updates the character stats as before.
+    /// </summary>
     public void EquipItem(Item item)
     {
         if (item == null || characterStats == null) return;
 
-        foreach (var modifier in item.StatModifiers)
+        if (item.Type == ItemType.Weapon)
         {
-            characterStats.GetStat(modifier.StatName).AddModifier(modifier.Value, modifier.IsMultiplicative);
+            if (equippedWeapon != null)
+            {
+                // Since Item.WeaponType is already a WeaponType, assign it directly.
+                equippedWeapon.weaponType = item.WeaponType;
+
+                // Build a dictionary of weapon modifiers using the WeaponStat enum.
+                Dictionary<WeaponStat, float> weaponModifiers = new Dictionary<WeaponStat, float>();
+                foreach (var modifier in item.StatModifiers)
+                {
+                    // Attempt to convert the modifier's StatName (a string) to a WeaponStat enum.
+                    WeaponStat stat;
+                    if (!Enum.TryParse<WeaponStat>(modifier.StatName, true, out stat))
+                    {
+                        Debug.LogWarning("Could not convert " + modifier.StatName + " to WeaponStat.");
+                        continue;
+                    }
+
+                    if (weaponModifiers.ContainsKey(stat))
+                    {
+                        weaponModifiers[stat] += modifier.Value;
+                    }
+                    else
+                    {
+                        weaponModifiers.Add(stat, modifier.Value);
+                    }
+                }
+                equippedWeapon.ApplyItemStats(weaponModifiers);
+            }
+        }
+        else
+        {
+            // For non-weapon items, update the character stats as before.
+            foreach (var modifier in item.StatModifiers)
+            {
+                characterStats.GetStat(modifier.StatName).AddModifier(modifier.Value, modifier.IsMultiplicative);
+            }
         }
     }
 
+    /// <summary>
+    /// Unequips an item.
+    /// If it's a weapon, removes its stat bonuses from the Weapon component and resets its type.
+    /// Otherwise, it updates the character stats as before.
+    /// </summary>
     public void UnequipItem(Item item)
     {
         if (item == null || characterStats == null) return;
 
-        foreach (var modifier in item.StatModifiers)
+        if (item.Type == ItemType.Weapon)
         {
-            characterStats.GetStat(modifier.StatName).RemoveModifier(modifier.Value, modifier.IsMultiplicative);
+            if (equippedWeapon != null)
+            {
+                Dictionary<WeaponStat, float> weaponModifiers = new Dictionary<WeaponStat, float>();
+                foreach (var modifier in item.StatModifiers)
+                {
+                    WeaponStat stat;
+                    if (!Enum.TryParse<WeaponStat>(modifier.StatName, true, out stat))
+                    {
+                        Debug.LogWarning("Could not convert " + modifier.StatName + " to WeaponStat.");
+                        continue;
+                    }
+
+                    if (weaponModifiers.ContainsKey(stat))
+                    {
+                        weaponModifiers[stat] += modifier.Value;
+                    }
+                    else
+                    {
+                        weaponModifiers.Add(stat, modifier.Value);
+                    }
+                }
+                equippedWeapon.RemoveItemStats(weaponModifiers);
+                // Reset the weapon type upon unequip.
+                equippedWeapon.weaponType = WeaponType.None;
+            }
+        }
+        else
+        {
+            foreach (var modifier in item.StatModifiers)
+            {
+                characterStats.GetStat(modifier.StatName).RemoveModifier(modifier.Value, modifier.IsMultiplicative);
+            }
         }
     }
 
@@ -251,7 +337,6 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
     }
 
-
     public RectTransform GetCurrentItemTransform()
     {
         return _currentItemTransform;
@@ -262,5 +347,4 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         _currentItemTransform = itemTransform;
         _currentItem = itemData;
     }
-
 }
