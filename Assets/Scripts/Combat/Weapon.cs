@@ -5,6 +5,7 @@ public enum WeaponStat
 {
     BaseAttackSpeed,
     BaseCriticalChance,
+    CritMultiplier,
     ProjectileAmount,
     ProjectileSpeed,
     MinPhysicalDamage,
@@ -34,6 +35,7 @@ public class Weapon : MonoBehaviour
     public float BaseAttackSpeed { get; set; } = 1.0f;
     public WeaponType weaponType { get; set; } = WeaponType.None;
     public float BaseCriticalChance { get; set; } = 0.05f;
+    public float CritMultiplier { get; set; } = 1.5f;
     public int ProjectileAmount { get; set; } = 1;
     public float ProjectileSpeed { get; set; } = 10.0f;
 

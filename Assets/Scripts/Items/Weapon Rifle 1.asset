@@ -21,7 +21,7 @@ MonoBehaviour:
   CurrentStack: 1
   StatModifiers:
   - StatName: BaseAttackSpeed
-    Value: 1
+    Value: 5
     IsMultiplicative: 0
   - StatName: BaseCriticalChance
     Value: 12

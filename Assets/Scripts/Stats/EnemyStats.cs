@@ -48,11 +48,13 @@ public class EnemyStats : MonoBehaviour
     }
 
     // Example method: take damage using the unified stat system.
-    public void TakeDamage(float amount)
+    public void TakeDamage(float amount, bool isCriticalHit)
     {
         var lifeStat = characterStats.GetStat("Life");
         lifeStat.BaseValue -= amount;
-        Debug.Log($"{EnemyName} took {amount} damage. Remaining Life: {lifeStat.BaseValue}");
+
+        string critText = isCriticalHit ? " (CRITICAL HIT!)" : "";
+        Debug.Log($"{EnemyName} took {amount} damage{critText}. Remaining Life: {lifeStat.BaseValue}");
 
         if (lifeStat.BaseValue <= 0)
         {
