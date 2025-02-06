@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 8773077900995624543}
   - component: {fileID: 4185871715473539074}
   - component: {fileID: 3861649910695613086}
+  - component: {fileID: 4717636891124999375}
+  - component: {fileID: 1139146749990277598}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -142,6 +144,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4af75bdb26d6a634588ceea8bec686fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4717636891124999375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4220695148454323146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1786bda569c7c0b44aa1eb96b01c7b92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  equippedWeapon: {fileID: 3861649910695613086}
+  playerStats: {fileID: 4185871715473539074}
+  projectilePrefab: {fileID: 4976851472230433156, guid: f01ba3effabcb6049af46127a701ca41, type: 3}
+  firePoint: {fileID: 3895157684599570270}
+  projectileSpeed: 10
+--- !u!114 &1139146749990277598
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4220695148454323146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d126424a54119f4c82dcb8f7609b16e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseCooldown: 1
+  manaCost: 0
+  weaponFirer: {fileID: 4717636891124999375}
+  playerStats: {fileID: 4185871715473539074}
 --- !u!1 &4355371384514850190
 GameObject:
   m_ObjectHideFlags: 0

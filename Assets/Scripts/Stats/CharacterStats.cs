@@ -15,7 +15,7 @@ public class CharacterStats : MonoBehaviour
     [SerializeField] public float DamageMultiplier { get; set; } = 1f;
     [SerializeField] public float CritChanceBonus { get; set; } = 0f;
     [SerializeField] public float CritMultiplierBonus { get; set; } = 0f;
-    [SerializeField] public float AttackSpeedBonus { get; set; } = 0f;
+    [SerializeField] public float IncreasedAttackSpeed { get; set; } = 0f;
     [SerializeField] public float CurrentMana { get; set; } = 100f;
 
     private void Awake()

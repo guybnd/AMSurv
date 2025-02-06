@@ -50,7 +50,7 @@ public class DefaultAttackSkill : MonoBehaviour
         // Calculate the effective attack rate.
         // We assume that weaponFirer.equippedWeapon.BaseAttackSpeed is defined as the number of attacks per second.
         // And playerStats.AttackSpeedBonus is a decimal (e.g., 0.2 for 20% increased attack speed).
-        float effectiveAttackRate = weaponFirer.equippedWeapon.BaseAttackSpeed * (1f + playerStats.AttackSpeedBonus);
+        float effectiveAttackRate = weaponFirer.equippedWeapon.BaseAttackSpeed * (1f + playerStats.IncreasedAttackSpeed);
         // The effective cooldown is the inverse of the effective attack rate.
         float effectiveCooldown = 1f / effectiveAttackRate;
 
