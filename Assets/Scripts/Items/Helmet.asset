@@ -27,6 +27,6 @@ MonoBehaviour:
     Value: 500
     IsMultiplicative: 0
   - StatName: IncreasedAttackSpeed
-    Value: 50
+    Value: 500
     IsMultiplicative: 0
   ID: 0

@@ -5,12 +5,13 @@ public class WeaponFirer : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] public Weapon equippedWeapon;      // Reference to the equipped weapon
-    [SerializeField] private CharacterStats playerStats;      // Reference to player stats (bonuses, etc.)
-    [SerializeField] private GameObject projectilePrefab;  // Prefab for the projectile
-    [SerializeField] private Transform firePoint;          // Where the projectile spawns
+    [SerializeField] private CharacterStats playerStats;  // Reference to player stats (bonuses, etc.)
+    [SerializeField] private GameObject projectilePrefab; // Prefab for the projectile
+    [SerializeField] private Transform firePoint;         // Where the projectile spawns
 
     [Header("Projectile Settings")]
-    [SerializeField] private float projectileSpeed = 10f;    // Speed at which the projectile moves
+    [SerializeField] private float projectileSpeed = 10f;   // Base projectile speed
+    [SerializeField] private float defaultProjectileDuration = 1f; // Default projectile duration before modifiers
 
     // Call this method (for example, on a mouse click) to fire the weapon.
     public void FireWeapon()
@@ -26,7 +27,12 @@ public class WeaponFirer : MonoBehaviour
         float totalSpread = (projectileCount - 1) * spreadAngle;
         float startAngle = -totalSpread / 2f;
 
-        float projectileSpeed = equippedWeapon.ProjectileSpeed;
+        // Apply the player's projectile speed bonus.
+        // For example, if IncreasedProjectileSpeed is 20, then multiplier is 1 + (20/100) = 1.2.
+        float modifiedSpeed = projectileSpeed * (1f + playerStats.IncreasedProjectileSpeed / 100f);
+
+        // Compute the projectile duration using the player's increased duration bonus.
+        float modifiedDuration = defaultProjectileDuration * (1f + playerStats.IncreasedDuration / 100f);
 
         // Calculate the damage (and crit status) for this attack.
         AttackData attackData = ComputeAttackDamage();
@@ -42,7 +48,8 @@ public class WeaponFirer : MonoBehaviour
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
             {
-                projectile.Initialize(finalDirection, projectileSpeed, attackData);
+                // Pass in the modified projectile speed and duration.
+                projectile.Initialize(finalDirection, modifiedSpeed, attackData, modifiedDuration);
             }
         }
     }

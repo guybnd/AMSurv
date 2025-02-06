@@ -7,28 +7,30 @@ public class Projectile : MonoBehaviour
     private AttackData attackData;
 
     [Header("Projectile Settings")]
-    [SerializeField] public float duration = 1f;       // Time (in seconds) before the projectile self-destructs.
-    [SerializeField] private float pierceChance = 0f;     // Pierce chance in percentage (default 0%).
-                                                          // For example, 100 means always pierce, 80 means 80% chance.
-                                                          // If above 100, each successful pierce reduces this value by 100.
+    [SerializeField] private float duration = 1f;       // Default duration (will be overridden by customDuration)
+    [SerializeField] private float pierceChance = 0f;     // Pierce chance in percentage (default 0%)
+                                                          // 100% guarantees a pierce, 80% means 80% chance, etc.
+    private float activeDuration; // The actual duration to use for self-destruction
 
     private void Start()
     {
-        // Automatically destroy this projectile after 'duration' seconds.
-        Destroy(gameObject, duration);
+        // Schedule self-destruction after the active duration.
+        Destroy(gameObject, activeDuration);
     }
 
     /// <summary>
     /// Initializes the projectile.
     /// </summary>
-    /// <param name="dir">The normalized direction vector for movement.</param>
-    /// <param name="projSpeed">The projectile's speed.</param>
-    /// <param name="data">Attack data that carries damage values and crit info.</param>
-    public void Initialize(Vector2 dir, float projSpeed, AttackData data)
+    /// <param name="dir">Normalized direction vector.</param>
+    /// <param name="projSpeed">Projectile speed.</param>
+    /// <param name="data">Attack data for the projectile.</param>
+    /// <param name="customDuration">Custom duration for this projectile instance.</param>
+    public void Initialize(Vector2 dir, float projSpeed, AttackData data, float customDuration)
     {
         direction = dir;
         speed = projSpeed;
         attackData = data;
+        activeDuration = customDuration;  // Override the default duration
 
         // Optionally, rotate the projectile to face its movement direction.
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
@@ -45,24 +47,22 @@ public class Projectile : MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            // Apply damage to the enemy.
             EnemyStats enemy = other.GetComponent<EnemyStats>();
             if (enemy != null)
             {
                 enemy.TakeDamage(attackData.damage, attackData.isCriticalHit);
             }
 
-            // Check if the projectile pierces the enemy.
+            // Check if the projectile should pierce the enemy.
             if (Random.Range(0f, 100f) < pierceChance)
             {
-                // The projectile pierces the enemy.
-                // Reduce the pierce chance by 100 (but don't let it drop below 0).
+                // Successful pierce: reduce pierceChance by 100 (but not below 0)
                 pierceChance = Mathf.Max(0f, pierceChance - 100f);
-                // (The projectile is not destroyed, so it can hit additional enemies.)
+                // Do not destroy the projectile, allowing it to hit another enemy.
             }
             else
             {
-                // The projectile does not pierce, so destroy it.
+                // Projectile does not pierce: destroy it.
                 Destroy(gameObject);
             }
         }
