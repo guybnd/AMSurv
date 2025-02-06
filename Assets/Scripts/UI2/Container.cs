@@ -138,7 +138,7 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         if (_containerType == ContainerType.Equipment)
         {
-            EquipItem(_currentItem); // Apply stats, including weapon stats if applicable.
+            EquipItem(_currentItem); // Override weapon stats if applicable.
         }
 
         if (previousContainer != null)
@@ -206,8 +206,8 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     /// <summary>
     /// Equips an item.
-    /// If it's a weapon, updates the Weapon component's stats and sets its weapon type.
-    /// Otherwise, it updates the character stats as before.
+    /// If it's a weapon, the Weapon component's stats are completely overridden
+    /// with the incoming weapon's stats. Any stat not provided by the item will be set to 0.
     /// </summary>
     public void EquipItem(Item item)
     {
@@ -220,28 +220,24 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                 // Since Item.WeaponType is already a WeaponType, assign it directly.
                 equippedWeapon.weaponType = item.WeaponType;
 
-                // Build a dictionary of weapon modifiers using the WeaponStat enum.
-                Dictionary<WeaponStat, float> weaponModifiers = new Dictionary<WeaponStat, float>();
+                // Build a dictionary of weapon stats from the item's StatModifiers.
+                // (We assume that item.StatModifiers is a collection where each modifier has:
+                //   - StatName: a string (e.g., "BaseAttackSpeed")
+                //   - Value: a float representing the stat's value)
+                Dictionary<WeaponStat, float> weaponStats = new Dictionary<WeaponStat, float>();
                 foreach (var modifier in item.StatModifiers)
                 {
-                    // Attempt to convert the modifier's StatName (a string) to a WeaponStat enum.
                     WeaponStat stat;
                     if (!Enum.TryParse<WeaponStat>(modifier.StatName, true, out stat))
                     {
                         Debug.LogWarning("Could not convert " + modifier.StatName + " to WeaponStat.");
                         continue;
                     }
-
-                    if (weaponModifiers.ContainsKey(stat))
-                    {
-                        weaponModifiers[stat] += modifier.Value;
-                    }
-                    else
-                    {
-                        weaponModifiers.Add(stat, modifier.Value);
-                    }
+                    // For overriding, simply set the stat value.
+                    weaponStats[stat] = modifier.Value;
                 }
-                equippedWeapon.ApplyItemStats(weaponModifiers);
+                // Override the weapon's stats completely.
+                equippedWeapon.SetWeaponStats(weaponStats);
             }
         }
         else
@@ -256,8 +252,7 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     /// <summary>
     /// Unequips an item.
-    /// If it's a weapon, removes its stat bonuses from the Weapon component and resets its type.
-    /// Otherwise, it updates the character stats as before.
+    /// If it's a weapon, the Weapon component resets its stats to the base values.
     /// </summary>
     public void UnequipItem(Item item)
     {
@@ -267,28 +262,8 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             if (equippedWeapon != null)
             {
-                Dictionary<WeaponStat, float> weaponModifiers = new Dictionary<WeaponStat, float>();
-                foreach (var modifier in item.StatModifiers)
-                {
-                    WeaponStat stat;
-                    if (!Enum.TryParse<WeaponStat>(modifier.StatName, true, out stat))
-                    {
-                        Debug.LogWarning("Could not convert " + modifier.StatName + " to WeaponStat.");
-                        continue;
-                    }
-
-                    if (weaponModifiers.ContainsKey(stat))
-                    {
-                        weaponModifiers[stat] += modifier.Value;
-                    }
-                    else
-                    {
-                        weaponModifiers.Add(stat, modifier.Value);
-                    }
-                }
-                equippedWeapon.RemoveItemStats(weaponModifiers);
-                // Reset the weapon type upon unequip.
-                equippedWeapon.weaponType = WeaponType.None;
+                // Reset the weapon's stats to its base values.
+                equippedWeapon.ResetWeaponStats();
             }
         }
         else
