@@ -22,10 +22,11 @@ public class DefaultAttackSkill : MonoBehaviour
         }
 
         // Example: Fire on left mouse click.
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButton(0) && currentCooldown <= 0f)
         {
             TryActivateSkill();
         }
+
     }
 
     /// <summary>

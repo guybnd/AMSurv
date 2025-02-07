@@ -27,7 +27,7 @@ MonoBehaviour:
     Value: 8
     IsMultiplicative: 0
   - StatName: ProjectileAmount
-    Value: 1
+    Value: 4
     IsMultiplicative: 0
   - StatName: ProjectileSpeed
     Value: 10
