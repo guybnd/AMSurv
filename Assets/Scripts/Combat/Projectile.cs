@@ -39,7 +39,7 @@ public class Projectile : MonoBehaviour
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
-            rb.velocity = this.direction * this.speed;
+            rb.linearVelocity = this.direction * this.speed;
         }
         else
         {

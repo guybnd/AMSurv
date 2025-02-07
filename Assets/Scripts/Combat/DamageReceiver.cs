@@ -1,4 +1,5 @@
 using UnityEngine;
+using System; // Required for events
 
 /// <summary>
 /// Component to handle receiving damage and applying it to CharacterStats.
@@ -8,6 +9,9 @@ public class DamageReceiver : MonoBehaviour
 {
     [Tooltip("CharacterStats component attached to this GameObject.")]
     [SerializeField] private CharacterStats characterStats; // Drag the CharacterStats component here in Inspector
+
+    // --- Death Event ---
+    public event EventHandler OnCharacterDeath; // Event to be invoked when character dies
 
     private void Awake()
     {
@@ -53,12 +57,11 @@ public class DamageReceiver : MonoBehaviour
 
             Debug.Log($"{gameObject.name} took {mitigatedDamage:F2} damage. New Life: {newLife:F2}");
 
-            // --- Handle Death (Optional - Implement death logic here if needed) ---
+            // --- Handle Death ---
             if (newLife <= 0)
             {
                 Debug.Log($"{gameObject.name} has died!");
-                // You can add death effects, animations, disable GameObject, etc., here.
-                // For example: Destroy(gameObject);
+                OnCharacterDeath?.Invoke(this, EventArgs.Empty); // Invoke the death event
             }
         }
         else

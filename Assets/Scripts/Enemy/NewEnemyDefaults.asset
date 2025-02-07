@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b1ec1378ff40fad4eac134f53b85baee, type: 3}
-  m_Name: EnemyStatDefaults
+  m_Name: NewEnemyDefaults
   m_EditorClassIdentifier: 
   EnemyName: Enemy
   Rarity: 0
   StatModifiers:
-  - StatName: MovementSpeed
+  - StatName: MoveSpeed
     Value: 3
     IsMultiplicative: 0
   - StatName: AttackCooldown
@@ -25,19 +25,11 @@ MonoBehaviour:
     Value: 10
     IsMultiplicative: 0
   - StatName: AttackRange
-    Value: 3
+    Value: 2
     IsMultiplicative: 0
   - StatName: Life
-    Value: 10
+    Value: 100
     IsMultiplicative: 0
   - StatName: ExperienceGiven
     Value: 10
     IsMultiplicative: 0
-  ExperienceGiven: 10
-  SkillPrefabs:
-  - {fileID: 8160384592331297356, guid: c6e7c1c7c70e16d448c6c423cb12744a, type: 3}
-  CommonRarityStatMultiplier: 1
-  UncommonRarityStatMultiplier: 1.2
-  RareRarityStatMultiplier: 1.5
-  EliteRarityStatMultiplier: 2
-  BossRarityStatMultiplier: 3

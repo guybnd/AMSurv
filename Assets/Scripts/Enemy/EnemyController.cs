@@ -1,29 +1,31 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic; // Required for List
+using System; // Required for EventArgs
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : MonoBehaviour // Make it a base class (can be inherited)
 {
     [Header("Enemy Components")]
     [Tooltip("Reference to the EnemyStats component.")]
-    [SerializeField] private EnemyStats enemyStats;
+    [SerializeField] protected EnemyStats enemyStats; // Changed to protected for inheritance
     [Tooltip("Target (typically the player).")]
-    [SerializeField] private Transform target;
+    [SerializeField] protected Transform target; // Changed to protected for inheritance
 
     [Header("Skills")]
-    [Tooltip("List of skills this enemy can use.")]
-    [SerializeField] private List<Skill> skills = new List<Skill>(); // List of skills
+    [Tooltip("List of skills this enemy can use. (Loaded from EnemyDefaults via EnemyStats)")]
+    [SerializeField] public List<Skill> skills = new List<Skill>(); // Public for EnemyStats to add skills, but you can adjust access as needed
+    // Skills are now loaded and initialized by EnemyStats from EnemyDefaults
 
     [Header("Attack Event")]
     [Tooltip("Event triggered when the enemy performs an attack.")]
     public UnityEvent OnAttack;
 
+    protected float attackTimer = 0f; // Changed to protected for inheritance
+    protected enum State { Idle, Chase, Attack } // Changed to protected for inheritance
+    protected State currentState = State.Idle; // Changed to protected for inheritance
 
-    private float attackTimer = 0f;
-    private enum State { Idle, Chase, Attack }
-    private State currentState = State.Idle;
 
-    private void Awake()
+    protected virtual void Awake() // Make virtual for derived classes to override
     {
         // Ensure enemyStats is assigned.
         if (enemyStats == null)
@@ -49,22 +51,39 @@ public class EnemyController : MonoBehaviour
             }
         }
 
-        // Initialize Skills - VERY IMPORTANT
-        foreach (Skill skill in skills)
+        // Skills are now initialized in EnemyStats after loading from EnemyDefaults
+        // InitializeSkills(); // REMOVE - Skills are initialized in EnemyStats now
+
+        DamageReceiver damageReceiver = GetComponent<DamageReceiver>(); // Get DamageReceiver component
+        if (damageReceiver != null)
         {
-            skill.InitializeSkill(); // Initialize each skill (no CharacterStats passed now)
+            damageReceiver.OnCharacterDeath += HandleCharacterDeath; // Use '+=' for standard C# events
+            Debug.Log($"{gameObject.name} (EnemyController) subscribed to OnCharacterDeath event from DamageReceiver."); // Debug log for subscription
+        }
+        else
+        {
+            Debug.LogError("DamageReceiver is null on " + gameObject.name + " EnemyController. Cannot subscribe to OnCharacterDeath event.");
         }
     }
 
-    private void Update()
+    public void InitializeSkills() // Public method to initialize skills, called from EnemyStats
+    {
+        // Initialize Skills - VERY IMPORTANT
+        foreach (Skill skill in skills)
+        {
+            skill.InitializeSkill(); // Initialize each skill
+        }
+    }
+
+
+    protected virtual void Update() // Make virtual for derived classes to override
     {
         // Retrieve all behavior parameters from the enemy's stats.
-        // Ensure these stats ("DetectionRange", "AttackRange", "AttackCooldown", "Speed") have been set
-        // via your EnemyDefaults asset and applied to CharacterStats.
-        float detectionRange = enemyStats.characterStats.GetStat("DetectionRange").GetValue();
-        float attackRange = enemyStats.characterStats.GetStat("AttackRange").GetValue();
-        float attackCooldown = enemyStats.characterStats.GetStat("AttackCooldown").GetValue();
-        float speed = enemyStats.characterStats.GetStat("MovementSpeed").GetValue();
+        // Ensure these stats ("DetectionRange", "AttackRange", "AttackCooldown", "Speed") are defined in EnemyDefaults
+        float detectionRange = enemyStats.GetStat("DetectionRange").GetValue();
+        float attackRange = enemyStats.GetStat("AttackRange").GetValue();
+        float attackCooldown = enemyStats.GetStat("AttackCooldown").GetValue();
+        float speed = enemyStats.GetStat("MovementSpeed").GetValue();
 
         // Decrement the attack cooldown timer.
         if (attackTimer > 0f)
@@ -112,13 +131,13 @@ public class EnemyController : MonoBehaviour
     }
 
 
-    private void IdleBehavior()
+    protected virtual void IdleBehavior() // Make virtual for derived classes to override
     {
-       // Debug.Log($"{enemyStats.EnemyName} is idle.");
+        // Debug.Log($"{enemyStats.EnemyName} is idle.");
         // (Optional) Add idle animations or effects here.
     }
 
-    private void ChaseBehavior(float speed)
+    protected virtual void ChaseBehavior(float speed) // Make virtual for derived classes to override
     {
         if (target == null) return;
 
@@ -127,11 +146,11 @@ public class EnemyController : MonoBehaviour
         //Debug.Log($"{enemyStats.EnemyName} is chasing at speed {speed}.");
     }
 
-    private void AttackBehavior() // Modified AttackBehavior
+    protected virtual void AttackBehavior() // Make virtual for derived classes to override
     {
         if (attackTimer > 0f)
         {
-           // Debug.Log($"{enemyStats.EnemyName} is preparing an attack. Cooldown remaining: {attackTimer:F2} sec");
+            // Debug.Log($"{enemyStats.EnemyName} is preparing an attack. Cooldown remaining: {attackTimer:F2} sec");
             return;
         }
 
@@ -150,7 +169,7 @@ public class EnemyController : MonoBehaviour
 
             skillToUse.ActivateSkill(attackDirection); // Activate skill, passing direction
             OnAttack?.Invoke(); // You can still trigger OnAttack event if needed for animations/sounds
-            attackTimer = enemyStats.characterStats.GetStat("AttackCooldown").GetValue(); // Reset attack timer in EnemyController
+            attackTimer = enemyStats.GetStat("AttackCooldown").GetValue(); // Reset attack timer in EnemyController
         }
         else
         {
@@ -164,7 +183,7 @@ public class EnemyController : MonoBehaviour
     /// Logic to choose which skill the enemy should use for an attack.
     /// </summary>
     /// <returns>The Skill to use, or null if no skill is available.</returns>
-    private Skill ChooseSkill()
+    protected virtual Skill ChooseSkill() // Make virtual for derived classes to override
     {
         // Simple skill selection: Use the first skill that is off cooldown
         foreach (Skill skill in skills)
@@ -175,5 +194,41 @@ public class EnemyController : MonoBehaviour
             }
         }
         return null; // No skill is ready
+    }
+
+    private void HandleCharacterDeath(object sender, System.EventArgs e) // Event handler method, matches event signature
+    {
+        Debug.Log($"{gameObject.name} (EnemyController) HandleCharacterDeath() method called in response to OnCharacterDeath event."); // Log when HandleCharacterDeath is called
+
+        // --- Death Logic ---
+
+        // --- Experience Award (Now to Player's Stats) ---
+        if (enemyStats != null && target != null) // Ensure enemyStats and target are not null
+        {
+            CharacterStats playerStats = target.GetComponent<CharacterStats>(); // Get CharacterStats from the target (Player)
+            if (playerStats != null)
+            {
+                int experienceToGive = enemyStats.enemyDefaults.ExperienceGiven;
+                playerStats.AddExperience(experienceToGive); // Award experience to player's stats
+                Debug.Log($"{gameObject.name} - Awarding {experienceToGive} experience to player's CharacterStats."); // Log experience award
+            }
+            else
+            {
+                Debug.LogWarning($"{gameObject.name} - Target (Player) does not have CharacterStats component. Cannot award experience.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"{gameObject.name} - EnemyStats or Target is null, cannot award experience.");
+        }
+
+        // --- Death Effects (Example - you can expand this) ---
+        Debug.Log($"{gameObject.name} - Playing death effects (example - override in derived classes).");
+        // You would add code here to play death animations, particle effects, sounds, etc.
+
+        // --- Destroy Enemy GameObject ---
+        Debug.Log($"{gameObject.name} (EnemyController) - Destroying GameObject.");
+        Destroy(gameObject); // Or consider object pooling for better performance
+        Debug.Log($"{gameObject.name} - GameObject Destroyed. Death sequence complete.");
     }
 }

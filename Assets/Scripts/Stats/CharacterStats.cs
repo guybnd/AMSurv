@@ -19,8 +19,11 @@ public class CharacterStats : MonoBehaviour
    [SerializeField]  public float IncreasedProjectileSpeed = 0f;
     [SerializeField] public float IncreasedDuration = 0f;
     [SerializeField] public float CurrentMana { get; set; } = 100f;
+    [SerializeField] public float MaxMana { get; set; } = 100f;
+    [SerializeField] public float ManaRegenRate { get; set; } = 1f;
+    [SerializeField] public float CurrentExperience { get; set; } = 0f;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         InitializeStats();
     }
@@ -33,6 +36,7 @@ public class CharacterStats : MonoBehaviour
         Stats["Intelligence"] = new Stat(defaultIntelligence);
         Stats["Life"] = new Stat(defaultLife);
         Stats["IncreasedAttackSpeed"] = new Stat(IncreasedAttackSpeed);
+        Stats["Experience"] = new Stat(CurrentExperience);
     }
 
     // Retrieve a stat by name. If missing, add it with a default base value of 0.
@@ -62,6 +66,26 @@ public class CharacterStats : MonoBehaviour
         foreach (var stat in Stats)
         {
             Debug.Log($"{stat.Key}: {stat.Value.GetValue()}");
+        }
+    }
+
+    public void AddExperience(int experienceAmount)
+    {
+        Stat experienceStat = GetStat("Experience"); // Get the Experience stat
+        if (experienceStat != null)
+        {
+            experienceStat.AddModifier(experienceAmount); // Increase experience value
+            Debug.Log($"Player gained {experienceAmount} experience. Total Experience: {experienceStat.GetValue()}");
+
+            // --- Level Up Logic (Example - Add your level up logic here) ---
+            Debug.LogWarning("--- Level Up Logic NOT IMPLEMENTED YET in CharacterStats.AddExperience() ---");
+            // In a real game, you would check if experienceStat.GetValue() has reached a level-up threshold here,
+            // and then trigger level-up actions (increase stats, learn new skills, etc.).
+            // --- Level Up Logic ---
+        }
+        else
+        {
+            Debug.LogError("Experience stat not found in CharacterStats.AddExperience()!");
         }
     }
 }

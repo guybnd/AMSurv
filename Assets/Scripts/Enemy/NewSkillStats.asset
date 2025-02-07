@@ -21,8 +21,8 @@ MonoBehaviour:
   attackDamageModifier: 1
   baseCriticalChance: 0.05
   critMultiplier: 2
-  minPhysicalDamage: 1
-  maxPhysicalDamage: 3
+  minPhysicalDamage: 0
+  maxPhysicalDamage: 0
   minFireDamage: 0
   maxFireDamage: 0
   minColdDamage: 0
