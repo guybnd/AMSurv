@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f6fa6a68b51765468a976317e344f8c, type: 3}
+  m_Name: NewSkillStats
+  m_EditorClassIdentifier: 
+  baseCooldownTime: 1
+  projectileSpeed: 10
+  defaultProjectileDuration: 1
+  projectileAmount: 1
+  spreadAngle: 5
+  minPhysicalDamage: 5
+  maxPhysicalDamage: 100
+  minFireDamage: 0
+  maxFireDamage: 0
+  minColdDamage: 0
+  maxColdDamage: 0
+  minLightningDamage: 0
+  maxLightningDamage: 0
+  minChaosDamage: 0
+  maxChaosDamage: 0
+  baseCriticalChance: 0.05
+  critMultiplier: 2
