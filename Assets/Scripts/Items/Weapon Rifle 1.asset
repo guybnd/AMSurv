@@ -36,9 +36,9 @@ MonoBehaviour:
     Value: 2
     IsMultiplicative: 0
   - StatName: MinPhysicalDamage
-    Value: 3
+    Value: 12
     IsMultiplicative: 0
   - StatName: MaxPhysicalDamage
-    Value: 5
+    Value: 13
     IsMultiplicative: 0
   ID: 0

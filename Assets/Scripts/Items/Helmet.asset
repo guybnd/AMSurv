@@ -29,4 +29,7 @@ MonoBehaviour:
   - StatName: IncreasedAttackSpeed
     Value: 500
     IsMultiplicative: 0
+  - StatName: CritChanceBonus
+    Value: 500
+    IsMultiplicative: 1
   ID: 0
