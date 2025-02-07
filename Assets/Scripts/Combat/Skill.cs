@@ -7,7 +7,8 @@ public enum TargetType // for skills to target specific types of objects
 {
     Player,
     Enemy,
-    Both // Targets both Players and Enemies
+    Environment,
+    All // Targets both Players and Enemies
 }
 
 public struct AttackData
@@ -39,7 +40,7 @@ public abstract class Skill : MonoBehaviour
 
     [Header("Targeting")]
     [Tooltip("Determines who this skill can target.")]
-    public TargetType targetType = TargetType.Both; // Default to targetting both
+    public TargetType targetType = TargetType.All; // Default to targetting both
 
     public float currentCooldownTime = 0f; // Tracks the current cooldown
 

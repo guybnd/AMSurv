@@ -29,7 +29,7 @@ public class Stat
     public void RemoveModifier(float modifier, bool isMultiplicative = false)
     {
         if (isMultiplicative) multiplicativeModifiers.Remove(modifier);
-        else additiveModifiers.Remove(modifier);
+        else multiplicativeModifiers.Remove(modifier);
     }
 
     public float GetValue()
@@ -38,5 +38,14 @@ public class Stat
         finalValue += additiveModifiers.Sum();
         finalValue *= 1 + multiplicativeModifiers.Sum();
         return finalValue;
+    }
+
+    /// <summary>
+    /// Sets the base value of the stat directly.
+    /// </summary>
+    /// <param name="newValue">The new base value to set.</param>
+    public void SetValue(float newValue) // ADD THIS METHOD
+    {
+        BaseValue = newValue;
     }
 }

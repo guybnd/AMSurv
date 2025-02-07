@@ -62,7 +62,7 @@ public class MeleeAttackSkill : Skill
     /// <returns>True if the target is of the correct type, false otherwise.</returns>
     private bool IsCorrectTargetType(GameObject targetGameObject)
     {
-        if (targetType == TargetType.Both) return true; // Skill targets both
+        if (targetType == TargetType.All) return true; // Skill targets both
 
         if (targetType == TargetType.Player && targetGameObject.CompareTag("Player")) return true; // Skill targets Player and hit is Player
 

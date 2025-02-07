@@ -124,7 +124,7 @@ public class EnemyController : MonoBehaviour
 
         Vector2 direction = ((Vector2)target.position - (Vector2)transform.position).normalized;
         transform.Translate(direction * speed * Time.deltaTime, Space.World);
-        Debug.Log($"{enemyStats.EnemyName} is chasing at speed {speed}.");
+        //Debug.Log($"{enemyStats.EnemyName} is chasing at speed {speed}.");
     }
 
     private void AttackBehavior() // Modified AttackBehavior

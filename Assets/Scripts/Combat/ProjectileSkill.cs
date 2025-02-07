@@ -69,7 +69,7 @@ public class ProjectileSkill : Skill
             if (projectile != null)
             {
                 // Pass in the modified projectile speed, duration and target type.
-                projectile.Initialize(finalDirection, modifiedSpeed, attackData, modifiedDuration, targetType);
+                projectile.Initialize(finalDirection, modifiedSpeed, attackData, modifiedDuration, targetType, gameObject); // Pass 'gameObject' as the shooter
             }
         }
 
