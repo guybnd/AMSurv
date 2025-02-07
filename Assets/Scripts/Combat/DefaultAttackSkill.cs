@@ -46,11 +46,14 @@ public class DefaultAttackSkill : MonoBehaviour
             Debug.Log("Not enough mana to use Default Attack.");
             return;
         }
+        // Retrieve the modified IncreasedAttackSpeed value from the stats dictionary.
+        // (Assuming the stat is stored as a percentage; e.g., 500 means 500%)
+        float modifiedAttackSpeedBonus = playerStats.GetStat("IncreasedAttackSpeed").GetValue();
 
         // Calculate the effective attack rate.
         // We assume that weaponFirer.equippedWeapon.BaseAttackSpeed is defined as the number of attacks per second.
         // And playerStats.AttackSpeedBonus is a decimal (e.g., 0.2 for 20% increased attack speed).
-        float effectiveAttackRate = weaponFirer.equippedWeapon.BaseAttackSpeed * (1f + playerStats.IncreasedAttackSpeed / 100f);
+        float effectiveAttackRate = weaponFirer.equippedWeapon.BaseAttackSpeed * (1f + modifiedAttackSpeedBonus / 100f);
 
         // The effective cooldown is the inverse of the effective attack rate.
         float effectiveCooldown = 1f / effectiveAttackRate;
