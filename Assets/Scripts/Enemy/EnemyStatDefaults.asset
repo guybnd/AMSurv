@@ -15,7 +15,7 @@ MonoBehaviour:
   EnemyName: Enemy
   Rarity: 0
   StatModifiers:
-  - StatName: MoveSpeed
+  - StatName: MovementSpeed
     Value: 3
     IsMultiplicative: 0
   - StatName: AttackCooldown
