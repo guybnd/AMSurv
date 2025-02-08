@@ -3,26 +3,35 @@ using UnityEngine.EventSystems;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f; // Speed of the player
+    public float movementSpeed = 5f; // Speed of the player
     public Vector2 moveDir; // Stores input direction
     Rigidbody2D rb; // Reference to the Rigidbody2D component
 
-
+    // Reference to the PlayerController to check if the player is dodging
+    private PlayerController playerController;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerController = GetComponent<PlayerController>();
     }
-
 
     void Update()
     {
-        InputManagement();
+        // Only update movement input if the player is not dodging.
+        if (playerController == null || !playerController.IsDodging)
+        {
+            InputManagement();
+        }
+        else
+        {
+            // When dodging, you might want to clear moveDir.
+            moveDir = Vector2.zero;
+        }
     }
 
     void FixedUpdate()
     {
-        // Apply movement
         Move();
     }
 
@@ -31,12 +40,19 @@ public class PlayerMovement : MonoBehaviour
         // Handle input for movement
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveY = Input.GetAxisRaw("Vertical");
-        moveDir = new Vector2(moveX,moveY).normalized;
+        moveDir = new Vector2(moveX, moveY).normalized;
     }
 
     void Move()
     {
-        // Move the player
-        rb.linearVelocity = new Vector2 (moveDir.x * moveSpeed, moveDir.y * moveSpeed);
+        // If the player is dodging, ignore normal movement.
+        if (playerController != null && playerController.IsDodging)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        // Apply normal movement
+        rb.linearVelocity = moveDir * movementSpeed;
     }
 }

@@ -1,17 +1,12 @@
 using UnityEngine;
-using System; // Required for events
+using System;
 
-/// <summary>
-/// Component to handle receiving damage and applying it to CharacterStats.
-/// This is a generic damage receiver that can be used for any entity that can take damage.
-/// </summary>
 public class DamageReceiver : MonoBehaviour
 {
     [Tooltip("CharacterStats component attached to this GameObject.")]
-    [SerializeField] private CharacterStats characterStats; // Drag the CharacterStats component here in Inspector
+    [SerializeField] private CharacterStats characterStats;
 
-    // --- Death Event ---
-    public event EventHandler OnCharacterDeath; // Event to be invoked when character dies
+    public event EventHandler OnCharacterDeath;
 
     private void Awake()
     {
@@ -20,48 +15,36 @@ public class DamageReceiver : MonoBehaviour
             characterStats = GetComponent<CharacterStats>();
             if (characterStats == null)
             {
-                Debug.LogError("DamageReceiver: CharacterStats component not found on this GameObject. Please attach CharacterStats to the same GameObject.");
-                enabled = false; // Disable this DamageReceiver if CharacterStats is missing
+                Debug.LogError("DamageReceiver: CharacterStats component not found. Attach CharacterStats to this GameObject.");
+                enabled = false;
             }
         }
     }
 
-    /// <summary>
-    /// Applies damage to the character.
-    /// </summary>
-    /// <param name="damageAmount">The total damage amount to be applied (after damage type calculations).</param>
     public void TakeDamage(float damageAmount)
     {
-        if (characterStats == null)
+        // Check if this GameObject is the player and is currently dodging (invulnerable)
+        PlayerController pc = GetComponent<PlayerController>();
+        if (pc != null && pc.IsDodging)
         {
-            Debug.LogWarning("DamageReceiver: TakeDamage called but CharacterStats is missing. Damage cannot be applied.");
+            Debug.Log($"{gameObject.name} is dodging – no damage applied.");
             return;
         }
 
-        // --- Apply Damage Mitigation (Armor, Resistance, Evasion - To be implemented later) ---
-        float mitigatedDamage = damageAmount; // For now, no mitigation is applied. Damage is direct.
-
-        // --- Reduce Life Stat ---
-        Stat lifeStat = characterStats.GetStat("Life"); // Assuming your Life stat is named "Life" in CharacterStats
+        // Apply damage (no mitigation for now)
+        float mitigatedDamage = damageAmount;
+        Stat lifeStat = characterStats.GetStat("Life");
         if (lifeStat != null)
         {
             float currentLife = lifeStat.GetValue();
             float newLife = currentLife - mitigatedDamage;
-
-            if (newLife < 0)
-            {
-                newLife = 0; // Ensure life doesn't go below zero
-            }
-
-            lifeStat.SetValue(newLife); // Update the Life stat with the new value
-
+            if (newLife < 0) newLife = 0;
+            lifeStat.SetValue(newLife);
             Debug.Log($"{gameObject.name} took {mitigatedDamage:F2} damage. New Life: {newLife:F2}");
-
-            // --- Handle Death ---
             if (newLife <= 0)
             {
                 Debug.Log($"{gameObject.name} has died!");
-                OnCharacterDeath?.Invoke(this, EventArgs.Empty); // Invoke the death event
+                OnCharacterDeath?.Invoke(this, EventArgs.Empty);
             }
         }
         else
