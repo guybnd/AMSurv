@@ -1,31 +1,46 @@
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections.Generic; // Required for List
-using System; // Required for EventArgs
+using System.Collections.Generic;
+using System;
 
-public class EnemyController : MonoBehaviour // Make it a base class (can be inherited)
+public class EnemyController : MonoBehaviour
 {
     [Header("Enemy Components")]
     [Tooltip("Reference to the EnemyStats component.")]
-    [SerializeField] protected EnemyStats enemyStats; // Changed to protected for inheritance
+    [SerializeField] protected EnemyStats enemyStats;
     [Tooltip("Target (typically the player).")]
-    [SerializeField] protected Transform target; // Changed to protected for inheritance
+    [SerializeField] protected Transform target;
 
     [Header("Skills")]
     [Tooltip("List of skills this enemy can use. (Loaded from EnemyDefaults via EnemyStats)")]
-    [SerializeField] public List<Skill> skills = new List<Skill>(); // Public for EnemyStats to add skills, but you can adjust access as needed
-    // Skills are now loaded and initialized by EnemyStats from EnemyDefaults
+    [SerializeField] public List<Skill> skills = new List<Skill>();
 
     [Header("Attack Event")]
     [Tooltip("Event triggered when the enemy performs an attack.")]
     public UnityEvent OnAttack;
 
-    protected float attackTimer = 0f; // Changed to protected for inheritance
-    protected enum State { Idle, Chase, Attack } // Changed to protected for inheritance
-    protected State currentState = State.Idle; // Changed to protected for inheritance
+    protected float attackTimer = 0f;
+    protected float idleTimer = 0f;
+    protected float timeToIdle = 3f;
 
+    protected enum State { Idle, Awake, Chase, Attack, Die }
+    protected State currentState = State.Idle;
 
-    protected virtual void Awake() // Make virtual for derived classes to override
+    private bool hasAggravated = false; // Tracks if the awake animation has been triggered.
+    private Animator animator;          // Reference to the Animator component.
+
+    // Timer variables for the Awake state.
+    private float awakeTimer = 0f;
+    [Tooltip("Maximum time (in seconds) to wait in the Awake state before forcing a transition.")]
+    [SerializeField] private float maxAwakeDuration = 2f; // Adjust to match your awake animation length.
+
+    // --- New variables for Attack Animation control ---
+    private bool isAttackAnimationPlaying = false;
+    private float attackAnimationTimer = 0f;
+    [Tooltip("Maximum time (in seconds) to wait in the Attack state before forcing a transition.")]
+    [SerializeField] private float maxAttackAnimationDuration = 1f; // Adjust to match your attack animation length.
+
+    protected virtual void Awake()
     {
         // Ensure enemyStats is assigned.
         if (enemyStats == null)
@@ -51,166 +66,290 @@ public class EnemyController : MonoBehaviour // Make it a base class (can be inh
             }
         }
 
-        // Skills are now initialized in EnemyStats after loading from EnemyDefaults
-        // InitializeSkills(); // REMOVE - Skills are initialized in EnemyStats now
-
-        DamageReceiver damageReceiver = GetComponent<DamageReceiver>(); // Get DamageReceiver component
+        // Subscribe to the character death event.
+        DamageReceiver damageReceiver = GetComponent<DamageReceiver>();
         if (damageReceiver != null)
         {
-            damageReceiver.OnCharacterDeath += HandleCharacterDeath; // Use '+=' for standard C# events
-            Debug.Log($"{gameObject.name} (EnemyController) subscribed to OnCharacterDeath event from DamageReceiver."); // Debug log for subscription
+            damageReceiver.OnCharacterDeath += HandleCharacterDeath;
+            Debug.Log($"{gameObject.name} (EnemyController) subscribed to OnCharacterDeath event from DamageReceiver.");
         }
         else
         {
             Debug.LogError("DamageReceiver is null on " + gameObject.name + " EnemyController. Cannot subscribe to OnCharacterDeath event.");
         }
-    }
 
-    public void InitializeSkills() // Public method to initialize skills, called from EnemyStats
-    {
-        // Initialize Skills - VERY IMPORTANT
-        foreach (Skill skill in skills)
+        animator = GetComponent<Animator>();
+        if (animator == null)
         {
-            skill.InitializeSkill(); // Initialize each skill
+            Debug.LogError("Animator component missing on " + gameObject.name + " EnemyController.");
         }
     }
 
-
-    protected virtual void Update() // Make virtual for derived classes to override
+    public void InitializeSkills()
     {
-        // Retrieve all behavior parameters from the enemy's stats.
-        // Ensure these stats ("DetectionRange", "AttackRange", "AttackCooldown", "Speed") are defined in EnemyDefaults
-        float detectionRange = enemyStats.GetStat("DetectionRange").GetValue();
-        float attackRange = enemyStats.GetStat("AttackRange").GetValue();
-        float attackCooldown = enemyStats.GetStat("AttackCooldown").GetValue();
-        float speed = enemyStats.GetStat("MovementSpeed").GetValue();
+        // Initialize each skill.
+        foreach (Skill skill in skills)
+        {
+            skill.InitializeSkill();
+        }
+    }
 
-        // Decrement the attack cooldown timer.
+    protected virtual void Update()
+    {
+        // Update attack cooldown timer.
         if (attackTimer > 0f)
         {
             attackTimer -= Time.deltaTime;
         }
 
-        // Update Cooldowns for all skills
+        // Update skill cooldowns.
         foreach (Skill skill in skills)
         {
             skill.UpdateSkillCooldown();
         }
 
-
-        // Determine distance to target.
-        float distance = (target != null) ? Vector2.Distance(transform.position, target.position) : Mathf.Infinity;
-
-        // Determine state based on distance.
-        if (distance <= attackRange)
+        // --- BLOCK MOVEMENT WHILE ATTACKING ---
+        if (isAttackAnimationPlaying)
         {
-            currentState = State.Attack;
-        }
-        else if (distance <= detectionRange)
-        {
-            currentState = State.Chase;
-        }
-        else
-        {
-            currentState = State.Idle;
+            attackAnimationTimer += Time.deltaTime;
+            if (attackAnimationTimer >= maxAttackAnimationDuration)
+            {
+                //Debug.Log($"<color=orange>{enemyStats.EnemyName}:</color> Max attack duration exceeded, forcing finish.");
+                OnAttackAnimationFinished();
+            }
+            else
+            {
+                //Debug.Log($"<color=yellow>{enemyStats.EnemyName}:</color> Attack animation playing; skipping movement update (timer: {attackAnimationTimer:F2}).");
+                return;
+            }
         }
 
-        // Execute behavior based on the current state.
+        // Retrieve parameters from enemyStats.
+        float detectionRange = enemyStats.GetStat("DetectionRange").GetValue();
+        float attackRange = enemyStats.GetStat("AttackRange").GetValue();
+        float speed = enemyStats.GetStat("MovementSpeed").GetValue();
+        timeToIdle = enemyStats.GetStat("TimeToIdle").GetValue();
+
+        // --- STATE SELECTION ---
+        // Only update the state based on distance if not in a transitional (Awake) or Die state.
+        if (currentState != State.Awake && currentState != State.Die)
+        {
+            if (target != null)
+            {
+                float distance = Vector2.Distance(transform.position, target.position);
+                if (distance <= attackRange)
+                {
+                    currentState = State.Attack;
+                    idleTimer = 0f;
+                }
+                else if (distance <= detectionRange)
+                {
+                    currentState = State.Chase;
+                    idleTimer = 0f;
+                }
+                else
+                {
+                    currentState = State.Idle;
+                    idleTimer += Time.deltaTime;
+                    if (idleTimer >= timeToIdle)
+                    {
+                        currentState = State.Idle;
+                        idleTimer = 0f;
+                    }
+                }
+            }
+            else
+            {
+                currentState = State.Idle;
+            }
+        }
+
+        // --- ANIMATION STATE CONTROL ---
+        if (animator != null)
+        {
+            switch (currentState)
+            {
+                case State.Idle:
+                    animator.SetInteger("EnemyState", 0);
+                    break;
+                case State.Awake:
+                    animator.SetInteger("EnemyState", 1);
+                    break;
+                case State.Chase:
+                    animator.SetInteger("EnemyState", 2);
+                    break;
+                case State.Attack:
+                    animator.SetInteger("EnemyState", 3);
+                    break;
+                case State.Die:
+                    animator.SetInteger("EnemyState", 4);
+                    break;
+            }
+        }
+
+        // --- EXECUTE BEHAVIOR ---
         switch (currentState)
         {
             case State.Idle:
                 IdleBehavior();
                 break;
+            case State.Awake:
             case State.Chase:
                 ChaseBehavior(speed);
                 break;
             case State.Attack:
-                AttackBehavior(); // Modified to handle skill selection
+                AttackBehavior();
+                break;
+            case State.Die:
+                DieBehavior();
                 break;
         }
     }
 
-
-    protected virtual void IdleBehavior() // Make virtual for derived classes to override
+    protected virtual void IdleBehavior()
     {
-        // Debug.Log($"{enemyStats.EnemyName} is idle.");
-        // (Optional) Add idle animations or effects here.
+        // Reset aggravated flag and awake timer when idle.
+        hasAggravated = false;
+        awakeTimer = 0f;
     }
 
-    protected virtual void ChaseBehavior(float speed) // Make virtual for derived classes to override
+    /// <summary>
+    /// Handles chasing behavior.
+    /// If the enemy hasn't played its awake animation, it triggers it and enters the Awake state.
+    /// While in Awake, it waits for the Animation Event or until maxAwakeDuration is reached.
+    /// </summary>
+    /// <param name="speed">Movement speed for chasing.</param>
+    protected virtual void ChaseBehavior(float speed)
     {
-        if (target == null) return;
+        if (target == null || currentState == State.Die)
+            return;
 
-        Vector2 direction = ((Vector2)target.position - (Vector2)transform.position).normalized;
-        transform.Translate(direction * speed * Time.deltaTime, Space.World);
-        //Debug.Log($"{enemyStats.EnemyName} is chasing at speed {speed}.");
-    }
-
-    protected virtual void AttackBehavior() // Make virtual for derived classes to override
-    {
-        if (attackTimer > 0f)
+        // Trigger the awake animation once when entering Chase.
+        if (!hasAggravated && animator != null)
         {
-            // Debug.Log($"{enemyStats.EnemyName} is preparing an attack. Cooldown remaining: {attackTimer:F2} sec");
+            animator.SetTrigger("IsAggravated");
+            currentState = State.Awake; // Lock in Awake state.
+            hasAggravated = true;
+            awakeTimer = 0f;
+            Debug.Log($"<color=green>{enemyStats.EnemyName}:</color> Triggered awake animation.");
+            return; // Wait for animation or fallback.
+        }
+
+        // While in Awake state, wait for the animation event.
+        if (currentState == State.Awake)
+        {
+            awakeTimer += Time.deltaTime;
+            if (awakeTimer >= maxAwakeDuration)
+            {
+                Debug.Log($"<color=orange>{enemyStats.EnemyName}:</color> Max awake duration exceeded, forcing transition to Chase.");
+                OnAwakeAnimationFinished(); // Fallback transition.
+            }
+            else
+            {
+                //Debug.Log($"<color=yellow>{enemyStats.EnemyName}:</color> Waiting for awake animation to finish (timer: {awakeTimer:F2}).");
+            }
             return;
         }
 
-        // 1. Skill Selection Logic:
-        Skill skillToUse = ChooseSkill(); // Implement skill selection logic
+        // If we reach here, state is Chase; proceed with movement.
+        Vector2 direction = ((Vector2)target.position - (Vector2)transform.position).normalized;
+        transform.Translate(direction * speed * Time.deltaTime, Space.World);
+        //Debug.Log($"<color=cyan>{enemyStats.EnemyName}:</color> Chasing at speed {speed}.");
+    }
 
-        if (skillToUse != null)
+    /// <summary>
+    /// Should be called by an Animation Event at the end of the awake animation,
+    /// or by the fallback timer if the event doesn't fire.
+    /// </summary>
+    public void OnAwakeAnimationFinished()
+    {
+        Debug.Log($"<color=purple>{enemyStats.EnemyName}:</color> Awake animation finished. Transitioning to Chase.");
+        currentState = State.Chase;
+        awakeTimer = 0f;
+    }
+
+    /// <summary>
+    /// Handles the enemy's attack behavior.
+    /// Triggers the attack animation and sets the attack flag so that movement is blocked.
+    /// </summary>
+    protected virtual void AttackBehavior()
+    {
+        // Do not attack if on cooldown, during awake transition, or if dying.
+        if (attackTimer > 0f || currentState == State.Awake || currentState == State.Die)
+            return;
+
+        // Skill selection.
+        Skill skillToUse = ChooseSkill();
+        if (skillToUse != null && animator != null)
         {
             Debug.Log($"{enemyStats.EnemyName} is using skill: {skillToUse.skillName}");
-            // 2. Calculate Direction to Target:
-            Vector2 attackDirection = Vector2.zero; // Default direction if no target
-            if (target != null)
-            {
-                attackDirection = ((Vector2)target.position - (Vector2)transform.position).normalized;
-            }
+            animator.SetTrigger("StartAttack");
+            // Set the attack flag and reset the timer.
+            isAttackAnimationPlaying = true;
+            attackAnimationTimer = 0f;
 
-            skillToUse.ActivateSkill(attackDirection); // Activate skill, passing direction
-            OnAttack?.Invoke(); // You can still trigger OnAttack event if needed for animations/sounds
-            attackTimer = enemyStats.GetStat("AttackCooldown").GetValue(); // Reset attack timer in EnemyController
+            Vector2 attackDirection = Vector2.zero;
+            if (target != null)
+                attackDirection = ((Vector2)target.position - (Vector2)transform.position).normalized;
+
+            skillToUse.ActivateSkill(attackDirection);
+            OnAttack?.Invoke();
+            attackTimer = enemyStats.GetStat("AttackCooldown").GetValue();
         }
         else
         {
             Debug.Log($"{enemyStats.EnemyName} wants to attack, but no skill is ready.");
-            // Optionally, handle case where no skill is ready (e.g., fall back to basic attack, wait, etc.)
         }
     }
 
+    /// <summary>
+    /// This method should be called by an Animation Event at the end of the attack animation,
+    /// or by the fallback timer if the event doesn't fire.
+    /// </summary>
+    public void OnAttackAnimationFinished()
+    {
+        Debug.Log($"<color=purple>{enemyStats.EnemyName}:</color> Attack animation finished.");
+        isAttackAnimationPlaying = false;
+        attackAnimationTimer = 0f;
+    }
+
+    protected virtual void DieBehavior()
+    {
+        // Death animation and additional effects can be handled here.
+    }
 
     /// <summary>
-    /// Logic to choose which skill the enemy should use for an attack.
+    /// Returns the first ready skill, or null if none are available.
     /// </summary>
-    /// <returns>The Skill to use, or null if no skill is available.</returns>
-    protected virtual Skill ChooseSkill() // Make virtual for derived classes to override
+    protected virtual Skill ChooseSkill()
     {
-        // Simple skill selection: Use the first skill that is off cooldown
         foreach (Skill skill in skills)
         {
             if (skill.IsSkillReady())
-            {
                 return skill;
-            }
         }
-        return null; // No skill is ready
+        return null;
     }
 
-    private void HandleCharacterDeath(object sender, System.EventArgs e) // Event handler method, matches event signature
+    private void HandleCharacterDeath(object sender, EventArgs e)
     {
-        Debug.Log($"{gameObject.name} (EnemyController) HandleCharacterDeath() method called in response to OnCharacterDeath event."); // Log when HandleCharacterDeath is called
-
-        // --- Death Logic ---
-
-        // --- Experience Award (Now to Player's Stats) ---
-        if (enemyStats != null && target != null) // Ensure enemyStats and target are not null
+        Debug.Log($"{gameObject.name} (EnemyController) HandleCharacterDeath() called in response to OnCharacterDeath event.");
+        currentState = State.Die;
+        if (animator != null)
         {
-            CharacterStats playerStats = target.GetComponent<CharacterStats>(); // Get CharacterStats from the target (Player)
+            animator.SetTrigger("OnDeath");
+            animator.SetInteger("EnemyState", 4);
+        }
+
+        // Award experience to player.
+        if (enemyStats != null && target != null)
+        {
+            CharacterStats playerStats = target.GetComponent<CharacterStats>();
             if (playerStats != null)
             {
                 int experienceToGive = enemyStats.enemyDefaults.ExperienceGiven;
-                playerStats.AddExperience(experienceToGive); // Award experience to player's stats
-                Debug.Log($"{gameObject.name} - Awarding {experienceToGive} experience to player's CharacterStats."); // Log experience award
+                playerStats.AddExperience(experienceToGive);
+                Debug.Log($"{gameObject.name} - Awarding {experienceToGive} experience to player's CharacterStats.");
             }
             else
             {
@@ -222,13 +361,9 @@ public class EnemyController : MonoBehaviour // Make it a base class (can be inh
             Debug.LogWarning($"{gameObject.name} - EnemyStats or Target is null, cannot award experience.");
         }
 
-        // --- Death Effects (Example - you can expand this) ---
-        Debug.Log($"{gameObject.name} - Playing death effects (example - override in derived classes).");
-        // You would add code here to play death animations, particle effects, sounds, etc.
-
-        // --- Destroy Enemy GameObject ---
+        Debug.Log($"{gameObject.name} - Playing death effects.");
         Debug.Log($"{gameObject.name} (EnemyController) - Destroying GameObject.");
-        Destroy(gameObject); // Or consider object pooling for better performance
+        Destroy(gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
         Debug.Log($"{gameObject.name} - GameObject Destroyed. Death sequence complete.");
     }
 }

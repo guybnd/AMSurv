@@ -31,9 +31,13 @@ MonoBehaviour:
     Value: 10
     IsMultiplicative: 0
   - StatName: ExperienceGiven
-    Value: 10
+    Value: 25
+    IsMultiplicative: 0
+  - StatName: TimeToIdle
+    Value: 2.5
     IsMultiplicative: 0
   ExperienceGiven: 10
+  TimeToIdle: 2
   SkillPrefabs:
   - {fileID: 8160384592331297356, guid: c6e7c1c7c70e16d448c6c423cb12744a, type: 3}
   CommonRarityStatMultiplier: 1

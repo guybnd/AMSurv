@@ -13,6 +13,7 @@ public class EnemyDefaults : ScriptableObject
 
     [Tooltip("Experience points awarded to player for defeating this enemy type.")]
     public int ExperienceGiven = 10;
+    public float TimeToIdle = 2f; // Time before enemy goes back to idle state
 
     [Header("Skill Prefabs")] // Changed Header Name
     [Tooltip("List of Skill Prefabs this enemy can use. Each prefab should have a Skill MonoBehaviour attached.")] // Updated Tooltip

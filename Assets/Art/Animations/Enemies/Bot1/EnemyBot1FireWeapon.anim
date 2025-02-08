@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PlayerWalk
+  m_Name: EnemyBot1FireWeapon
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,19 +21,19 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: -4225593618574199882, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
-    - time: 0.125
-      value: {fileID: 7975215115049347780, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
+      value: {fileID: -3924097988741207057, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
     - time: 0.25
-      value: {fileID: 156406858294669468, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
-    - time: 0.375
-      value: {fileID: 5098582127913816423, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
+      value: {fileID: -2496493023873709385, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
+    - time: 0.5
+      value: {fileID: 1545732929948856323, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
+    - time: 0.75
+      value: {fileID: -8447423193763620356, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
     script: {fileID: 0}
     flags: 2
-  m_SampleRate: 8
+  m_SampleRate: 4
   m_WrapMode: 0
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -50,16 +50,16 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: -4225593618574199882, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
-    - {fileID: 7975215115049347780, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
-    - {fileID: 156406858294669468, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
-    - {fileID: 5098582127913816423, guid: 6a137d202e81e6e45a57af5c29bb5865, type: 3}
+    - {fileID: -3924097988741207057, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
+    - {fileID: -2496493023873709385, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
+    - {fileID: 1545732929948856323, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
+    - {fileID: -8447423193763620356, guid: 0edd5bcffc4d63c47aefa59705422a8f, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 0.5
+    m_StopTime: 1
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
@@ -79,8 +79,8 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
-  - time: 0
-    functionName: 
+  - time: 1
+    functionName: OnAttackAnimationFinished
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
