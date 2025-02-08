@@ -1,20 +1,42 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5f; // Speed of the player
-    private Vector2 movement; // Stores input direction
+    public Vector2 moveDir; // Stores input direction
+    Rigidbody2D rb; // Reference to the Rigidbody2D component
+
+
+
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
+
 
     void Update()
     {
-        // Get input from the player
-        movement.x = Input.GetAxisRaw("Horizontal");
-        movement.y = Input.GetAxisRaw("Vertical");
+        InputManagement();
     }
 
     void FixedUpdate()
     {
         // Apply movement
-        transform.Translate(movement * moveSpeed * Time.fixedDeltaTime);
+        Move();
+    }
+
+    void InputManagement()
+    {
+        // Handle input for movement
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveY = Input.GetAxisRaw("Vertical");
+        moveDir = new Vector2(moveX,moveY).normalized;
+    }
+
+    void Move()
+    {
+        // Move the player
+        rb.linearVelocity = new Vector2 (moveDir.x * moveSpeed, moveDir.y * moveSpeed);
     }
 }
