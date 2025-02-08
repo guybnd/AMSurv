@@ -845,6 +845,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2546057373523719832, guid: 157e4a8798e41bf4a9f1731f54fc242d, type: 3}
+      propertyPath: dodgeSpeed
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546057373523719832, guid: 157e4a8798e41bf4a9f1731f54fc242d, type: 3}
+      propertyPath: dodgeDuration
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546057373523719832, guid: 157e4a8798e41bf4a9f1731f54fc242d, type: 3}
+      propertyPath: movementSpeedPenaltyPercentage
+      value: 0.672
+      objectReference: {fileID: 0}
     - target: {fileID: 4220695148454323146, guid: 157e4a8798e41bf4a9f1731f54fc242d, type: 3}
       propertyPath: m_Name
       value: Player
