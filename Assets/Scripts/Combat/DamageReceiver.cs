@@ -7,7 +7,7 @@ public class DamageReceiver : MonoBehaviour
     [SerializeField] private CharacterStats characterStats;
 
     public event EventHandler OnCharacterDeath;
-
+    public event EventHandler<float> OnDamageTaken;
     private void Awake()
     {
         if (characterStats == null)
@@ -27,7 +27,7 @@ public class DamageReceiver : MonoBehaviour
         PlayerController pc = GetComponent<PlayerController>();
         if (pc != null && pc.IsDodging)
         {
-            Debug.Log($"{gameObject.name} is dodging – no damage applied.");
+            Debug.Log($"{gameObject.name} is dodging ï¿½ no damage applied.");
             return;
         }
 
@@ -40,6 +40,7 @@ public class DamageReceiver : MonoBehaviour
             float newLife = currentLife - mitigatedDamage;
             if (newLife < 0) newLife = 0;
             lifeStat.SetValue(newLife);
+            OnDamageTaken?.Invoke(this, mitigatedDamage);
             Debug.Log($"{gameObject.name} took {mitigatedDamage:F2} damage. New Life: {newLife:F2}");
             if (newLife <= 0)
             {

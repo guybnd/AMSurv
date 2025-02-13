@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "PathSurvivors.sln"
+    "dotnet.defaultSolution": "PathSurvivors.sln",
+    "dotnet.preferCSharpExtension": true
 }

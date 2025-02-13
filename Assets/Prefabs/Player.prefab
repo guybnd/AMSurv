@@ -116,7 +116,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c82713f59d586844bd4f419bdd4320e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  movementSpeed: 5
+  moveDir: {x: 0, y: 0}
 --- !u!114 &4185871715473539074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,6 +164,10 @@ MonoBehaviour:
   playerStats: {fileID: 4185871715473539074}
   skills:
   - {fileID: 5228496400004946945}
+  dodgeDuration: 0.5
+  dodgeSpeed: 10
+  postDodgeRecoveryDuration: 0.5
+  movementSpeedPenaltyPercentage: 0.5
 --- !u!114 &5157812522807071170
 MonoBehaviour:
   m_ObjectHideFlags: 0
