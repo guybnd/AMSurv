@@ -6,10 +6,17 @@ public class DamageReceiver : MonoBehaviour
     [Tooltip("CharacterStats component attached to this GameObject.")]
     [SerializeField] private CharacterStats characterStats;
 
+    private PlayerController pc;
+
     public event EventHandler OnCharacterDeath;
     public event EventHandler<float> OnDamageTaken;
+
+    private UIHealthBarManager _uiHealthBarManager;
+
     private void Awake()
     {
+        pc = GetComponent<PlayerController>();
+       
         if (characterStats == null)
         {
             characterStats = GetComponent<CharacterStats>();
@@ -21,10 +28,24 @@ public class DamageReceiver : MonoBehaviour
         }
     }
 
+    private UIHealthBarManager GetHealthBarManager()
+    {
+        if (_uiHealthBarManager == null)
+        {
+            Debug.Log("Finding UIHealthBarManager in the scene.");
+            _uiHealthBarManager = FindObjectOfType<UIHealthBarManager>();
+            if (_uiHealthBarManager == null)
+            {
+                Debug.LogError("UIHealthBarManager not found in the scene.");
+            }
+        }
+        return _uiHealthBarManager;
+    }
+
     public void TakeDamage(float damageAmount)
     {
         // Check if this GameObject is the player and is currently dodging (invulnerable)
-        PlayerController pc = GetComponent<PlayerController>();
+ 
         if (pc != null && pc.IsDodging)
         {
             Debug.Log($"{gameObject.name} is dodging � no damage applied.");
@@ -46,6 +67,16 @@ public class DamageReceiver : MonoBehaviour
             {
                 Debug.Log($"{gameObject.name} has died!");
                 OnCharacterDeath?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                // Register health bar if life is not full.
+                UIHealthBarManager healthBarManager = GetHealthBarManager();
+                if (healthBarManager != null) //&& newLife < lifeStat.BaseValue)
+                {
+                    healthBarManager.RegisterHealthBar(characterStats);
+                    Debug.Log($"{gameObject.name} health bar registered.");
+                }
             }
         }
         else
