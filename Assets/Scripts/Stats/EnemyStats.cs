@@ -17,7 +17,6 @@ public class EnemyStats : CharacterStats // Inherit from CharacterStats
 
         if (enemyDefaults == null)
         {
-            Debug.LogError("EnemyDefaults asset not assigned in the Inspector for EnemyStats on: " + gameObject.name);
             return;
         }
 
@@ -50,14 +49,12 @@ public class EnemyStats : CharacterStats // Inherit from CharacterStats
 
         if (rarityMultiplier != 1f) // Only apply scaling if multiplier is not 1 (to avoid unnecessary calculations for Common rarity)
         {
-            Debug.Log($"Applying Rarity Scaling ({Rarity}, Multiplier: {rarityMultiplier}) to {EnemyName}");
             foreach (var statName in Stats.Keys)
             {
                 Stat stat = GetStat(statName); // Use inherited GetStat
                 if (stat != null)
                 {
                     stat.BaseValue *= rarityMultiplier; // Scale base value by rarity multiplier
-                    Debug.Log($"  Scaled {statName} to {stat.GetValue()}");
                 }
             }
         }
@@ -85,7 +82,6 @@ public class EnemyStats : CharacterStats // Inherit from CharacterStats
         {
             if (enemyDefaults.SkillPrefabs != null) // Check if SkillPrefabs list is not null
             {
-                Debug.Log($"EnemyStats: Instantiating {enemyDefaults.SkillPrefabs.Count} skill prefabs from EnemyDefaults for {EnemyName}.");
                 foreach (GameObject skillPrefab in enemyDefaults.SkillPrefabs)
                 {
                     if (skillPrefab != null) // Check if prefab is not null
@@ -95,35 +91,11 @@ public class EnemyStats : CharacterStats // Inherit from CharacterStats
                         if (skillComponent != null)
                         {
                             controller.skills.Add(skillComponent); // Add Skill component to EnemyController's list
-                            Debug.Log($"  Instantiated skill prefab: {skillPrefab.name}, Skill Component: {skillComponent.skillName}");
                         }
-                        else
-                        {
-                            Debug.LogWarning($"  Instantiated prefab {skillPrefab.name} does not have a Skill component attached!");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning("  Skill Prefab in EnemyDefaults is null!");
                     }
                 }
                 controller.InitializeSkills(); // Initialize the loaded skills in EnemyController
-                Debug.Log($"EnemyStats: Total skills loaded into EnemyController for {EnemyName}: {controller.skills.Count}");
             }
-            else
-            {
-                Debug.LogWarning($"EnemyStats: SkillPrefabs list in EnemyDefaults is null for {EnemyName}. No skills will be loaded.");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("EnemyStats: EnemyController component not found. Skills from EnemyDefaults will not be loaded.");
         }
     }
-
-
-    // --- REMOVE REDUNDANT TakeDamage and Die from EnemyStats ---
-    // Damage handling is now done by DamageReceiver and Enemy.
-    // public void TakeDamage(float amount, bool isCriticalHit) { ... }
-    // private void Die() { ... }
 }

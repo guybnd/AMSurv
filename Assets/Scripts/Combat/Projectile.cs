@@ -112,21 +112,21 @@ public class Projectile : MonoBehaviour
         // 2. Apply Damage and Despawn if it's a VALID target (Enemy or Player)
         if (isValidTarget && targetDamageReceiver != null)
         {
-            Debug.Log($"Projectile hit VALID Target: {collision.gameObject.name}, Damage: {attackData.damage:F2}, Crit: {attackData.isCriticalHit}");
+            // Debug.Log($"Projectile hit VALID Target: {collision.gameObject.name}, Damage: {attackData.damage:F2}, Crit: {attackData.isCriticalHit}");
             targetDamageReceiver.TakeDamage(attackData.damage);
             Destroy(gameObject); // Destroy projectile after hitting VALID target
         }
         // 3. Despawn if it hits ENVIRONMENT
         else if (isEnvironment)
         {
-            Debug.Log($"Projectile hit Environment: {collision.gameObject.name}. Despawning projectile.");
+            // Debug.Log($"Projectile hit Environment: {collision.gameObject.name}. Despawning projectile.");
             Destroy(gameObject); // Destroy projectile on Environment collision
         }
         else
         {
             // Hit something else that is NOT the shooter, NOT a valid target, and NOT environment.
             // In this case, we should NOT despawn, let the projectile pass through.
-            Debug.Log($"Projectile hit: {collision.gameObject.name}, but it's NOT shooter, valid target, or environment. Projectile PASSED THROUGH.");
+            // Debug.Log($"Projectile hit: {collision.gameObject.name}, but it's NOT shooter, valid target, or environment. Projectile PASSED THROUGH.");
             // Do NOT Destroy(gameObject) here - projectile passes through
         }
     }

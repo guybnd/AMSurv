@@ -17,7 +17,7 @@ public class UIHealthBarManager : MonoBehaviour {
     }
 
     public void RegisterHealthBar(CharacterStats stats) {
-        Debug.Log("Registering health bar for " + stats.name);
+        // Debug.Log("Registering health bar for " + stats.name);
         if (stats == null) return;
         if (activeHealthBars.ContainsKey(stats)) return;
 

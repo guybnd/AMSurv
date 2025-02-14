@@ -44,7 +44,7 @@ public class CharacterStats : MonoBehaviour
     {
         if (!Stats.ContainsKey(statName))
         {
-            Debug.LogWarning($"Stat '{statName}' does not exist. Creating it with a default value of 0.");
+            // Debug.LogWarning($"Stat '{statName}' does not exist. Creating it with a default value of 0. for {gameObject.name}");
             Stats[statName] = new Stat(0);
         }
         return Stats[statName];
@@ -62,10 +62,10 @@ public class CharacterStats : MonoBehaviour
     [ContextMenu("Show Stats in Console")]
     private void ShowStatsInConsole()
     {
-        Debug.Log("Current Stats:");
+        // Debug.Log("Current Stats:");
         foreach (var stat in Stats)
         {
-            Debug.Log($"{stat.Key}: {stat.Value.GetValue()}");
+            // Debug.Log($"{stat.Key}: {stat.Value.GetValue()}");
         }
     }
 
@@ -75,17 +75,17 @@ public class CharacterStats : MonoBehaviour
         if (experienceStat != null)
         {
             experienceStat.AddModifier(experienceAmount); // Increase experience value
-            Debug.Log($"Player gained {experienceAmount} experience. Total Experience: {experienceStat.GetValue()}");
+            // Debug.Log($"Player gained {experienceAmount} experience. Total Experience: {experienceStat.GetValue()}");
 
             // --- Level Up Logic (Example - Add your level up logic here) ---
-            Debug.LogWarning("--- Level Up Logic NOT IMPLEMENTED YET in CharacterStats.AddExperience() ---");
+            // Debug.LogWarning("--- Level Up Logic NOT IMPLEMENTED YET in CharacterStats.AddExperience() ---");
             // In a real game, you would check if experienceStat.GetValue() has reached a level-up threshold here,
             // and then trigger level-up actions (increase stats, learn new skills, etc.).
             // --- Level Up Logic ---
         }
         else
         {
-            Debug.LogError("Experience stat not found in CharacterStats.AddExperience()!");
+            // Debug.LogError("Experience stat not found in CharacterStats.AddExperience()!");
         }
     }
 }

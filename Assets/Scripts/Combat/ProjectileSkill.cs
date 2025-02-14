@@ -23,7 +23,7 @@ public class ProjectileSkill : Skill
     {
         if (!IsSkillReady() || skillBaseStats == null) return;
 
-        Debug.Log($"{skillName} activated in direction: {direction}, Target Type: {targetType}!");
+        // Debug.Log($"{skillName} activated in direction: {direction}, Target Type: {targetType}!");
 
         // Get CharacterStats and Weapon components from the skill's owner (player)
         CharacterStats ownerStats = GetComponentInParent<CharacterStats>();

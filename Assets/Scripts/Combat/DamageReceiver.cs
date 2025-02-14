@@ -32,11 +32,9 @@ public class DamageReceiver : MonoBehaviour
     {
         if (_uiHealthBarManager == null)
         {
-            Debug.Log("Finding UIHealthBarManager in the scene.");
-            _uiHealthBarManager = FindObjectOfType<UIHealthBarManager>();
+            _uiHealthBarManager = FindFirstObjectByType<UIHealthBarManager>();
             if (_uiHealthBarManager == null)
             {
-                Debug.LogError("UIHealthBarManager not found in the scene.");
             }
         }
         return _uiHealthBarManager;
@@ -44,15 +42,11 @@ public class DamageReceiver : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        // Check if this GameObject is the player and is currently dodging (invulnerable)
- 
         if (pc != null && pc.IsDodging)
         {
-            Debug.Log($"{gameObject.name} is dodging � no damage applied.");
             return;
         }
 
-        // Apply damage (no mitigation for now)
         float mitigatedDamage = damageAmount;
         Stat lifeStat = characterStats.GetStat("Life");
         if (lifeStat != null)
@@ -62,26 +56,21 @@ public class DamageReceiver : MonoBehaviour
             if (newLife < 0) newLife = 0;
             lifeStat.SetValue(newLife);
             OnDamageTaken?.Invoke(this, mitigatedDamage);
-            Debug.Log($"{gameObject.name} took {mitigatedDamage:F2} damage. New Life: {newLife:F2}");
             if (newLife <= 0)
             {
-                Debug.Log($"{gameObject.name} has died!");
                 OnCharacterDeath?.Invoke(this, EventArgs.Empty);
             }
             else
             {
-                // Register health bar if life is not full.
                 UIHealthBarManager healthBarManager = GetHealthBarManager();
-                if (healthBarManager != null) //&& newLife < lifeStat.BaseValue)
+                if (healthBarManager != null)
                 {
                     healthBarManager.RegisterHealthBar(characterStats);
-                    Debug.Log($"{gameObject.name} health bar registered.");
                 }
             }
         }
         else
         {
-            Debug.LogError("DamageReceiver: 'Life' stat not found in CharacterStats. Damage cannot be applied.");
         }
     }
 }

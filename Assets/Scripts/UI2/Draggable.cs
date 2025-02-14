@@ -46,7 +46,7 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
             if (CurrentContainer.GetContainerType() == ContainerType.Equipment)
             {
                 // Send the item back to inventory
-                var inventoryContainers = FindObjectsOfType<Container>();
+                var inventoryContainers = Object.FindObjectsByType<Container>(FindObjectsSortMode.None);
                 foreach (var container in inventoryContainers)
                 {
                     if (container.GetContainerType() == ContainerType.Inventory && container.GetCurrentItemTransform() == null)
@@ -66,7 +66,7 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
             else if (CurrentContainer.GetContainerType() == ContainerType.Inventory && ItemData.Type != ItemType.BagItem)
             {
                 // Try to equip the item from the inventory
-                var equipmentContainers = FindObjectsOfType<Container>();
+                var equipmentContainers = Object.FindObjectsByType<Container>(FindObjectsSortMode.None);
                 foreach (var container in equipmentContainers)
                 {
                     if (container.GetContainerType() == ContainerType.Equipment && container.CanAcceptItem(ItemData) && container.GetCurrentItemTransform() == null)

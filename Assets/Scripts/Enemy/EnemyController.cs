@@ -40,6 +40,8 @@ public class EnemyController : MonoBehaviour
     [Tooltip("Maximum time (in seconds) to wait in the Attack state before forcing a transition.")]
     [SerializeField] private float maxAttackAnimationDuration = 1f; // Adjust to match your attack animation length.
 
+    private bool isDead = false;
+
     protected virtual void Awake()
     {
         // Ensure enemyStats is assigned.
@@ -71,7 +73,7 @@ public class EnemyController : MonoBehaviour
         if (damageReceiver != null)
         {
             damageReceiver.OnCharacterDeath += HandleCharacterDeath;
-            Debug.Log($"{gameObject.name} (EnemyController) subscribed to OnCharacterDeath event from DamageReceiver.");
+            // Debug.Log($"{gameObject.name} (EnemyController) subscribed to OnCharacterDeath event from DamageReceiver.");
         }
         else
         {
@@ -231,7 +233,7 @@ public class EnemyController : MonoBehaviour
             currentState = State.Awake; // Lock in Awake state.
             hasAggravated = true;
             awakeTimer = 0f;
-            Debug.Log($"<color=green>{enemyStats.EnemyName}:</color> Triggered awake animation.");
+            // Debug.Log($"<color=green>{enemyStats.EnemyName}:</color> Triggered awake animation.");
             return; // Wait for animation or fallback.
         }
 
@@ -241,7 +243,7 @@ public class EnemyController : MonoBehaviour
             awakeTimer += Time.deltaTime;
             if (awakeTimer >= maxAwakeDuration)
             {
-                Debug.Log($"<color=orange>{enemyStats.EnemyName}:</color> Max awake duration exceeded, forcing transition to Chase.");
+                // Debug.Log($"<color=orange>{enemyStats.EnemyName}:</color> Max awake duration exceeded, forcing transition to Chase.");
                 OnAwakeAnimationFinished(); // Fallback transition.
             }
             else
@@ -263,7 +265,7 @@ public class EnemyController : MonoBehaviour
     /// </summary>
     public void OnAwakeAnimationFinished()
     {
-        Debug.Log($"<color=purple>{enemyStats.EnemyName}:</color> Awake animation finished. Transitioning to Chase.");
+        // Debug.Log($"<color=purple>{enemyStats.EnemyName}:</color> Awake animation finished. Transitioning to Chase.");
         currentState = State.Chase;
         awakeTimer = 0f;
     }
@@ -282,7 +284,7 @@ public class EnemyController : MonoBehaviour
         Skill skillToUse = ChooseSkill();
         if (skillToUse != null && animator != null)
         {
-            Debug.Log($"{enemyStats.EnemyName} is using skill: {skillToUse.skillName}");
+            // Debug.Log($"{enemyStats.EnemyName} is using skill: {skillToUse.skillName}");
             animator.SetTrigger("StartAttack");
             // Set the attack flag and reset the timer.
             isAttackAnimationPlaying = true;
@@ -298,7 +300,7 @@ public class EnemyController : MonoBehaviour
         }
         else
         {
-            Debug.Log($"{enemyStats.EnemyName} wants to attack, but no skill is ready.");
+            // Debug.Log($"{enemyStats.EnemyName} wants to attack, but no skill is ready.");
         }
     }
 
@@ -308,7 +310,7 @@ public class EnemyController : MonoBehaviour
     /// </summary>
     public void OnAttackAnimationFinished()
     {
-        Debug.Log($"<color=purple>{enemyStats.EnemyName}:</color> Attack animation finished.");
+        // Debug.Log($"<color=purple>{enemyStats.EnemyName}:</color> Attack animation finished.");
         isAttackAnimationPlaying = false;
         attackAnimationTimer = 0f;
     }
@@ -333,7 +335,10 @@ public class EnemyController : MonoBehaviour
 
     private void HandleCharacterDeath(object sender, EventArgs e)
     {
-        Debug.Log($"{gameObject.name} (EnemyController) HandleCharacterDeath() called in response to OnCharacterDeath event.");
+        if (isDead) return; // Prevent multiple calls
+
+        isDead = true;
+        // Debug.Log($"{gameObject.name} (EnemyController) HandleCharacterDeath() called in response to OnCharacterDeath event.");
         currentState = State.Die;
         if (animator != null)
         {
@@ -361,9 +366,9 @@ public class EnemyController : MonoBehaviour
             Debug.LogWarning($"{gameObject.name} - EnemyStats or Target is null, cannot award experience.");
         }
 
-        Debug.Log($"{gameObject.name} - Playing death effects.");
-        Debug.Log($"{gameObject.name} (EnemyController) - Destroying GameObject.");
+        // Debug.Log($"{gameObject.name} - Playing death effects.");
+        // Debug.Log($"{gameObject.name} (EnemyController) - Destroying GameObject.");
         Destroy(gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
-        Debug.Log($"{gameObject.name} - GameObject Destroyed. Death sequence complete.");
+        // Debug.Log($"{gameObject.name} - GameObject Destroyed. Death sequence complete.");
     }
 }

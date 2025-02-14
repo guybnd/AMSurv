@@ -141,7 +141,7 @@ public abstract class Skill : MonoBehaviour
 
 
         currentCooldownTime = modifiedCooldown;
-        Debug.Log($"{skillName} cooldown set to: {currentCooldownTime:F2} seconds (Base: {baseCooldown}s)");
+        // Debug.Log($"{skillName} cooldown set to: {currentCooldownTime:F2} seconds (Base: {baseCooldown}s)");
     }
     /// <summary>
     /// Checks if the skill is currently off cooldown and ready to use.

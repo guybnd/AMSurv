@@ -68,7 +68,7 @@ public class PlayerController : MonoBehaviour
             skill.UpdateSkillCooldown();
         }
 
-        // Check for dodge input (Space key) – only if not already dodging
+        // Check for dodge input (Space key) ï¿½ only if not already dodging
         if (Input.GetKeyDown(KeyCode.Space) && !isDodging)
         {
             StartDodge();
@@ -124,7 +124,7 @@ public class PlayerController : MonoBehaviour
         isDodging = true;
         dodgeTimer = 0f;
 
-        // Trigger the dodge roll animation – ensure your Animator Controller has a "DodgeRoll" trigger.
+        // Trigger the dodge roll animation ï¿½ ensure your Animator Controller has a "DodgeRoll" trigger.
         if (animator != null)
         {
             animator.SetTrigger("DodgeRoll");
@@ -174,12 +174,12 @@ public class PlayerController : MonoBehaviour
 
         if (projectileSkill.IsSkillReady())
         {
-            Debug.Log("Player activating Projectile Skill");
+            // Debug.Log("Player activating Projectile Skill");
             projectileSkill.ActivateSkill(fireDirection);
         }
         else
         {
-            Debug.Log($"Projectile Skill on cooldown. Remaining: {projectileSkill.currentCooldownTime:F2} sec");
+            // Debug.Log($"Projectile Skill on cooldown. Remaining: {projectileSkill.currentCooldownTime:F2} sec");
         }
     }
 }
