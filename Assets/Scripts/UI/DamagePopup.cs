@@ -22,7 +22,7 @@ public class DamagePopup : MonoBehaviour
         // Verify we have a Canvas reference
         if (targetCanvas == null)
         {
-            Debug.LogError($"No Canvas assigned to DamagePopup on {gameObject.name}. Please assign a Canvas in the inspector!");
+            // Debug.LogError($"No Canvas assigned to DamagePopup on {gameObject.name}. Please assign a Canvas in the inspector!");
             enabled = false;
             return;
         }
