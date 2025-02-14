@@ -12,8 +12,9 @@ public class DamageReceiver : MonoBehaviour
     public event EventHandler<float> OnDamageTaken;
 
     private UIHealthBarManager _uiHealthBarManager;
+    private LocalHealthBar _localHealthBar; // Add this line
 
-    private void Awake()
+    private void Start()
     {
         pc = GetComponent<PlayerController>();
        
@@ -26,13 +27,19 @@ public class DamageReceiver : MonoBehaviour
                 enabled = false;
             }
         }
+
+        _localHealthBar = GetComponentInChildren<LocalHealthBar>(); // Modified to search in child GameObjects
+        if (_localHealthBar == null)
+        {
+            Debug.LogError($"DamageReceiver: LocalHealthBar component not found on {gameObject.name}. Attach LocalHealthBar to this GameObject.");
+        }
     }
 
     private UIHealthBarManager GetHealthBarManager()
     {
         if (_uiHealthBarManager == null)
         {
-            _uiHealthBarManager = FindFirstObjectByType<UIHealthBarManager>();
+            _uiHealthBarManager = FindObjectOfType<UIHealthBarManager>();
             if (_uiHealthBarManager == null)
             {
             }
@@ -56,6 +63,7 @@ public class DamageReceiver : MonoBehaviour
             if (newLife < 0) newLife = 0;
             lifeStat.SetValue(newLife);
             OnDamageTaken?.Invoke(this, mitigatedDamage);
+            _localHealthBar?.OnDamageTaken(); // Add this line
             if (newLife <= 0)
             {
                 OnCharacterDeath?.Invoke(this, EventArgs.Empty);
