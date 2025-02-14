@@ -19,10 +19,32 @@ public class DamagePopup : MonoBehaviour
             return;
         }
 
+        // Find the targetCanvas if it's not assigned
+        if (targetCanvas == null)
+        {
+            // Search for a Canvas with the "DamagePopup" layer.
+            foreach (Canvas canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+            {
+                if (LayerMask.LayerToName(canvas.gameObject.layer) == "DamagePopup")
+                {
+                    targetCanvas = canvas;
+                    // Debug.LogWarning($"No Canvas assigned to DamagePopup on {gameObject.name}. Using Canvas found in the scene with 'DamagePopup' layer: {targetCanvas.name}");
+                    break;
+                }
+            }
+
+            if (targetCanvas == null)
+            {
+                Debug.LogError($"No Canvas with 'DamagePopup' layer found in the scene for DamagePopup on {gameObject.name}. Please add a Canvas with the 'DamagePopup' layer to the scene or assign a Canvas in the inspector!");
+                enabled = false;
+                return;
+            }
+        }
+
         // Verify we have a Canvas reference
         if (targetCanvas == null)
         {
-            // Debug.LogError($"No Canvas assigned to DamagePopup on {gameObject.name}. Please assign a Canvas in the inspector!");
+             Debug.LogError($"No Canvas assigned to DamagePopup on {gameObject.name}. Please assign a Canvas in the inspector!");
             enabled = false;
             return;
         }
