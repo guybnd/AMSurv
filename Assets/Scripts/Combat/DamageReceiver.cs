@@ -11,7 +11,7 @@ public class DamageReceiver : MonoBehaviour
     public event EventHandler OnCharacterDeath;
     public event EventHandler<float> OnDamageTaken;
 
-    private UIHealthBarManager _uiHealthBarManager;
+
     private LocalHealthBar _localHealthBar; // Add this line
 
     private void Start()
@@ -35,17 +35,6 @@ public class DamageReceiver : MonoBehaviour
         }
     }
 
-    private UIHealthBarManager GetHealthBarManager()
-    {
-        if (_uiHealthBarManager == null)
-        {
-            _uiHealthBarManager = FindObjectOfType<UIHealthBarManager>();
-            if (_uiHealthBarManager == null)
-            {
-            }
-        }
-        return _uiHealthBarManager;
-    }
 
     public void TakeDamage(float damageAmount)
     {
@@ -70,11 +59,7 @@ public class DamageReceiver : MonoBehaviour
             }
             else
             {
-                UIHealthBarManager healthBarManager = GetHealthBarManager();
-                if (healthBarManager != null)
-                {
-                    healthBarManager.RegisterHealthBar(characterStats);
-                }
+
             }
         }
         else

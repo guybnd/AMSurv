@@ -20,7 +20,7 @@ MonoBehaviour:
   MaxStack: 1
   CurrentStack: 1
   StatModifiers:
-  - StatName: Strongt
+  - StatName: Strength
     Value: 10
     IsMultiplicative: 0
   - StatName: IncreasedDuration

@@ -48,7 +48,7 @@ public class Item : ScriptableObject
             var stat = characterStats.GetStat(modifier.StatName);
             if (stat != null)
             {
-                stat.AddModifier(modifier.Value, modifier.IsMultiplicative);
+                stat.AddModifier(modifier.StatName, modifier.Value, modifier.IsMultiplicative);
             }
         }
     }
@@ -60,7 +60,7 @@ public class Item : ScriptableObject
             var stat = characterStats.GetStat(modifier.StatName);
             if (stat != null)
             {
-                stat.RemoveModifier(modifier.Value, modifier.IsMultiplicative);
+                stat.RemoveModifier(modifier.StatName, modifier.Value, modifier.IsMultiplicative);
             }
         }
     }

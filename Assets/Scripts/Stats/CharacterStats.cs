@@ -7,6 +7,15 @@ public class CharacterStats : MonoBehaviour
     // Dictionary to hold all stats (not shown in Inspector)
     public Dictionary<string, Stat> Stats = new Dictionary<string, Stat>();
 
+    // NEW: Event to notify when stats change.
+    public event System.Action OnStatsChanged;
+    
+    // NEW: Call this method after stats are modified.
+    public void NotifyStatsChanged()
+    {
+        OnStatsChanged?.Invoke();
+    }
+
     [Header("Default Base Values (modifiable in Inspector)")]
     [SerializeField] private float defaultStrength = 10f;
     [SerializeField] private float defaultDexterity = 10f;
@@ -62,10 +71,10 @@ public class CharacterStats : MonoBehaviour
     [ContextMenu("Show Stats in Console")]
     private void ShowStatsInConsole()
     {
-        // Debug.Log("Current Stats:");
+        Debug.Log("Current Stats:");
         foreach (var stat in Stats)
         {
-            // Debug.Log($"{stat.Key}: {stat.Value.GetValue()}");
+             Debug.Log($"{stat.Key}: {stat.Value.GetValue()}");
         }
     }
 
@@ -74,7 +83,7 @@ public class CharacterStats : MonoBehaviour
         Stat experienceStat = GetStat("Experience"); // Get the Experience stat
         if (experienceStat != null)
         {
-            experienceStat.AddModifier(experienceAmount); // Increase experience value
+            experienceStat.AddModifier("Experience", experienceAmount); // Increase experience value
             // Debug.Log($"Player gained {experienceAmount} experience. Total Experience: {experienceStat.GetValue()}");
 
             // --- Level Up Logic (Example - Add your level up logic here) ---
@@ -87,5 +96,9 @@ public class CharacterStats : MonoBehaviour
         {
             // Debug.LogError("Experience stat not found in CharacterStats.AddExperience()!");
         }
+    }
+    public Dictionary<string, Stat> GetAllStats()
+    {
+        return Stats;
     }
 }

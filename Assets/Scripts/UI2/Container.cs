@@ -245,9 +245,11 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             // For non-weapon items, update the character stats as before.
             foreach (var modifier in item.StatModifiers)
             {
-                characterStats.GetStat(modifier.StatName).AddModifier(modifier.Value, modifier.IsMultiplicative);
+                characterStats.GetStat(modifier.StatName).AddModifier(modifier.StatName, modifier.Value, modifier.IsMultiplicative);
             }
         }
+        // Instead of directly updating UI, notify that stats have changed.
+        characterStats.NotifyStatsChanged();
     }
 
     /// <summary>
@@ -270,9 +272,11 @@ public class Container : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             foreach (var modifier in item.StatModifiers)
             {
-                characterStats.GetStat(modifier.StatName).RemoveModifier(modifier.Value, modifier.IsMultiplicative);
+                characterStats.GetStat(modifier.StatName).RemoveModifier(modifier.StatName, modifier.Value, modifier.IsMultiplicative);
             }
         }
+        // Notify stats change via CharacterStats.
+        characterStats.NotifyStatsChanged();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
